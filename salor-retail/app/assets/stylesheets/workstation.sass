@@ -58,7 +58,7 @@ $text_size_massive: 150%
 
 $base_zoom: 1
 
-$header_height: 57px
+$header_height: 61px
 $header_width: $base_width
 $header_li_pad: 2px
 
@@ -347,7 +347,7 @@ div.table > div.table-row > div.table-cell
   display: inline-block
   text-align: left
   margin: 2px 2px
-  height: 35px
+  height: 45px
   text-align: center
   padding: 4px 0px 6px 0px
   vertical-align: top
@@ -423,7 +423,7 @@ div.table-cell.btn
   @include rounded_corners_all_small
   @include pointer
   text-align: center
-  padding: 0px 15px
+  padding: 5px 15px
   vertical-align: bottom
   
 div.field_with_errors
@@ -596,11 +596,12 @@ div.salor-icon
   display: inline-block
   text-align: center
   padding: 5px
+  letter-spacing: 0.8px
   span.icon-caption 
     font-size: $text_size_tiny
     text-transform: uppercase
     position: relative
-    bottom: 11px
+    bottom: 7px
 
 
 
@@ -637,11 +638,12 @@ div.header
   width: 100%
   z-index: 100
   div.salor-icon
+    padding: 5px
     span.icon-caption 
       position: relative
       bottom: 7px
   div#header_drawer_amount
-    :margin -21px 0px 0px 0px
+    :margin -16px 0px 0px 0px
     :font-weight bold
     :font-size 90%
     :width 65px
@@ -656,7 +658,7 @@ div.header
     li
       margin-right: $header_li_pad
       @include no_select
-      width: 65px
+      width: 75px
       display: inline-block
       vertical-align: top
       div 
@@ -724,6 +726,8 @@ div.generic-search
   top: 0px
   right: 0px
   width: 160px
+input.generic-search-input-wide
+  width: 400px
 
 div.generic-search-button 
   background: url(/images/icons/okay.svg) no-repeat
@@ -1076,7 +1080,8 @@ input#main_sku_field
 
 div#main_shipment_sku_field_kbd,
 div#main_sku_field_kbd
-  :padding 10px 20px
+  :padding 13px 20px
+  :top -4px
 
 div.keys div.key,
 input.ui-keyboard-button 
@@ -1188,7 +1193,7 @@ div#eod-drawer-total
   @include rounded_corners_all
 
 div#eod-calculator-total, div#eod-calculator-difference 
-  width: 190px
+  width: 300px
   height: 30px
   margin-right: 10px
   text-transform: uppercase
@@ -1460,6 +1465,7 @@ div.cash-drop textarea
 
 input.cash-drop-amount
   font-size: 300%
+  width: 160px
 
 table.cash-drop-radios 
   width: 100px
@@ -2834,10 +2840,14 @@ div.select-widget-entry
   :padding 5px 10px
   :margin 5px
   :display inline-block
+  :min-width 50px
 div.select-widget-display
   @include widget
   :background-color $middleground2
   :padding 10px
+  :position absolute
+  :left 30%
+  :top 30%
   :z-index 1025
   :box-shadow 0px 0px 10px white
 div.plugin-panel div
@@ -3229,4 +3239,25 @@ table.stock_transactions
   input
     :width 50%
     
+    
+div.paper-invoice
+  text-align: left
+  background-color: white
+  min-height: 1060px
+  color: black
+  width: 750px
+  margin: 50px auto
+  padding: 40px 30px 50px 30px
+  position: relative
+  font-size: 90%
+  
+ul#translation_form
+  input
+    background-color: transparent
+    color: black
+  span
+    min-width: 100px
+    display: inline-block
 
+table#upload_dropzone
+  display: none

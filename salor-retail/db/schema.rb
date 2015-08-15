@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140111050554) do
+ActiveRecord::Schema.define(:version => 20141227173637) do
 
   create_table "actions", :force => true do |t|
     t.string   "name"
@@ -184,14 +184,10 @@ ActiveRecord::Schema.define(:version => 20140111050554) do
     t.string   "url"
     t.string   "source_sku"
     t.string   "destination_sku"
+    t.string   "owner_type"
+    t.integer  "owner_id"
     t.datetime "created_at",                         :null => false
     t.datetime "updated_at",                         :null => false
-    t.boolean  "hidden"
-    t.integer  "hidden_by"
-    t.datetime "hidden_at"
-    t.integer  "vendor_id"
-    t.integer  "company_id"
-    t.integer  "user_id"
   end
 
   create_table "customers", :force => true do |t|
@@ -289,6 +285,7 @@ ActiveRecord::Schema.define(:version => 20140111050554) do
   add_index "drawer_transactions", ["created_at"], :name => "index_drawer_transactions_on_created_at"
   add_index "drawer_transactions", ["drawer_id"], :name => "index_drawer_transactions_on_drawer_id"
   add_index "drawer_transactions", ["hidden"], :name => "index_drawer_transactions_on_hidden"
+  add_index "drawer_transactions", ["order_id"], :name => "index_drawer_transactions_on_order_id"
   add_index "drawer_transactions", ["refund"], :name => "index_drawer_transactions_on_refund"
   add_index "drawer_transactions", ["user_id"], :name => "index_drawer_transactions_on_user_id"
   add_index "drawer_transactions", ["vendor_id"], :name => "index_drawer_transactions_on_vendor_id"
@@ -375,6 +372,7 @@ ActiveRecord::Schema.define(:version => 20140111050554) do
     t.string   "name"
     t.string   "sku"
     t.string   "currency"
+    t.integer  "tax_profile_id"
   end
 
   add_index "inventory_report_items", ["inventory_report_id"], :name => "index_inventory_report_items_on_inventory_report_id"
@@ -620,12 +618,6 @@ ActiveRecord::Schema.define(:version => 20140111050554) do
     t.string   "mdhash"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
-    t.boolean  "hidden"
-    t.integer  "hidden_by"
-    t.datetime "hidden_at"
-    t.integer  "vendor_id"
-    t.integer  "company_id"
-    t.integer  "user_id"
   end
 
   create_table "node_queues", :force => true do |t|
@@ -636,15 +628,10 @@ ActiveRecord::Schema.define(:version => 20140111050554) do
     t.string   "url"
     t.string   "source_sku"
     t.string   "destination_sku"
+    t.string   "owner_type"
     t.integer  "owner_ir"
     t.datetime "created_at",                         :null => false
     t.datetime "updated_at",                         :null => false
-    t.boolean  "hidden"
-    t.integer  "hidden_by"
-    t.datetime "hidden_at"
-    t.integer  "vendor_id"
-    t.integer  "company_id"
-    t.integer  "user_id"
   end
 
   create_table "nodes", :force => true do |t|
@@ -660,7 +647,7 @@ ActiveRecord::Schema.define(:version => 20140111050554) do
     t.datetime "updated_at",                               :null => false
     t.string   "status"
     t.boolean  "is_busy",               :default => false
-    t.boolean  "hidden"
+    t.integer  "hidden",                :default => 0
     t.boolean  "accepts_tax_profiles",  :default => true
     t.boolean  "accepts_buttons",       :default => true
     t.boolean  "accepts_categories",    :default => true
@@ -668,10 +655,6 @@ ActiveRecord::Schema.define(:version => 20140111050554) do
     t.boolean  "accepts_customers",     :default => true
     t.boolean  "accepts_loyalty_cards", :default => true
     t.boolean  "accepts_discounts",     :default => true
-    t.integer  "hidden_by"
-    t.datetime "hidden_at"
-    t.integer  "company_id"
-    t.integer  "user_id"
   end
 
   create_table "notes", :force => true do |t|

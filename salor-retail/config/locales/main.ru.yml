@@ -166,6 +166,7 @@ ru:
         quantity: количество
         sku: SKU
         stock_location_id: Расположение склада
+      shipper_name: Shipper
       shipper_sku: SKU отправителя
       sku: SKU
       start_amount: начальное количество
@@ -216,7 +217,6 @@ ru:
       when: когда
       whento: When
       width: ширина
-      shipper_name: Shipper
     models:
       action:
         one: Действие
@@ -372,6 +372,7 @@ ru:
     update_location: обновить отдел
     update_real_quantity: обновить реальное количество
     users: users
+    action_apply_to_area: Apply this action to
   helpers:
     select:
       prompt: выберете пожалуйста
@@ -421,12 +422,16 @@ ru:
         хотите продолжить?
       report: Report
     inventory_report:
+      add_quantity: add quantity
+      current_quantity: Current quantity
       no_category: No Category
       price: Цена продажи
       subtotal_purchase_price: Подытог цены покупки
       subtotal_selling_price: Подытог цены продажи
+      sum_purchase_price: Sum Purchase Price
+      sum_selling_price: Sum Selling Price
       title: Инвентарный отчёт
-      total_buying_price: Суммарная цена покупки
+      total_purchase_price: Total Purchase Price
       total_selling_price: Суммарная цена продажи
     selection:
       print: Print
@@ -494,6 +499,7 @@ ru:
     end_day: конец дня
     enter_inventory_items: Enter
     general_configuration: основные настройки
+    gift_cards: Gift Cards
     home: домой
     inventory_report: Отчет по товарам
     invoice_blurbs: Invoice Blurbs
@@ -729,6 +735,7 @@ ru:
     cashier: кассир
     manager: менеджер
     stockboy: кладовщик
+  sales_statistics: Sale Statistics
   shipments:
     index:
       report: Отчет
@@ -748,6 +755,8 @@ ru:
         Пожалуйста, создайте начало дня внесения наличных вручную.
       cannot_edit_completed_order: Этот заказ выполнен и не может быть изменён.
       cannot_reorder: Невозможно повторить заказ.
+      cannot_set_negative_price: Setting negative prices is not allowed. Please switch
+        to buyback mode and enter a positive price.
       child_sku_must_exist: Товар-наследник должен существовать!
       coupon_cannot_be_buy_one_get_one: купон %{sku} не может be_buy_one_get_one когда
         применяется к %{applies}
@@ -755,6 +764,11 @@ ru:
         это
       csv_item_exists: Товар %{sku} существует!
       csv_item_failed: Ошибка чтения %{id} %{i}
+      deletion_of_item_when_order_completed: This order has already been completed
+        at a differnt location. Please click the "New" button to start a new order.
+      dont_use_negative_prices: Prices cannot be negative. Use positive buyback price
+        instead.
+      dont_use_weird_skus: Only Aa-Zz and 0-9 are permitted in the SKU field
       failed_to_save_parts: Невозможно сохранить комплект. Убедитесь, что выбранные
         товары существуют.
       gift_card_empty: На подарочной карте ничего нет, уведомите клиента и уничтожьте
@@ -799,6 +813,7 @@ ru:
       shipment_item_nil: Товар, вернувшийся из поставки, пустой?
       sku_must_be_unique: ! '%{sku} должен быть уникальным'
       value_not_set: НеУказано
+    finish_day: End of day
     inventory_updated: проведен переучет товара
     logged_in_as: вошли как
     login: войти
@@ -854,12 +869,21 @@ ru:
       transaction_tag: transaction tag
       transaction_total: transaction total
       transactions: transactions
+    sales_statistics:
+      category: Category
+      from: From
+      item_name: Item name
+      quantity: Quantity
+      sum: Sum
+      title: Sales Statistics
+      to: To
   views:
     advanced_field: дополнительное поле
     cash_register_heading: ! '%{name} для %{store}'
     cash_registers: кассовые аппараты
     category_heading: категория %{name} для %{store}
     change: сдача
+    copies: Copies
     create_new_item: xxx Create New Article
     customers: покупатели
     download_may_last_long: Скачивание может длится долго. Продолжить?
@@ -909,6 +933,14 @@ ru:
     notice:
       cache_was_cleared: Кэш-файлы удалены.
       csv_edit_starting: начало редактирования CSV
+      delete_completed_order: This order is already completed. Cannot delete.
+      edit_completed_order: This order is already completed. Cannot edit it.
+      edit_order_by_other_user: This order is currently edited by user %{username}.
+        Cannot open it. User %{username} must click on the 'New' button, then try
+        again.
+      item_not_existing: This item did not exist. It has been created and the price
+        set to zero. You can change the price and it will be saved permanently in
+        the database.
       model_create: ! '%{model} была успешно создана'
       model_edit: ! '%{model} была успешно отредактирована'
       move_real_quantities_success: Количество товара было успешно обновлено
@@ -965,6 +997,7 @@ ru:
       to: кому
       top: верх
       waiting: ожидание...
+      xor: OR
     sticky_ticket: Наклейка
     stock_locations: расположения складов
     subtotal: подытог
@@ -975,11 +1008,13 @@ ru:
     vendor: магазин
     wholesaler_refresh: Получение обновлений от оптового поставщика. Это может занять
       несколько минут.
+    drop_files_here: Drop files here or click to upload.
+    drop_files_only_csv: (Only .csv in the salor format accepted)
   when_list:
     add_to_order: при добавлении к заказу
     always: всегда
+    change_quantity: on change quantity
     on_export: при экспорте
     on_import: при импорте
     on_save: при сохранении
     on_sku_not_found: on sku not found
-    change_quantity: on change quantity

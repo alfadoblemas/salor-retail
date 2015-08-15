@@ -43,8 +43,14 @@ class Item < ActiveRecord::Base
   accepts_nested_attributes_for :item_stocks, :allow_destroy => true #, :reject_if => lambda {|a| (a[:stock_location_quantity].to_f +  a[:location_quantity].to_f == 0.00) }
 
   validates_presence_of :sku, :item_type, :vendor_id, :company_id, :tax_profile_id, :currency
-  validate :sku_unique_in_visible, :not_selfloop, :not_too_long_child_chain, :not_too_long_parent_chain, :no_child_duplicate
-
+  
+  validate :sku_unique_in_visible, :if => :sku_is_not_weird
+  validate :not_selfloop
+  validate :not_too_long_child_chain
+  validate :not_too_long_parent_chain
+  validate :no_child_duplicate
+  validate :not_negative
+  
   before_save :run_onsave_actions
   before_save :cache_behavior
   
@@ -58,13 +64,31 @@ class Item < ActiveRecord::Base
   
   SHIPPER_IMPORT_FORMATS = ['type1', 'type2', 'salor', 'optimalsoft']
   
+  def not_negative
+    if self.base_price.fractional < 0
+      errors.add(:base_price, I18n.t('system.errors.dont_use_negative_prices'))
+    end
+    
+    if self.buyback_price.fractional < 0
+      errors.add(:buyback_price, I18n.t('system.errors.dont_use_negative_prices'))
+    end
+  end
+  
+  def sku_is_not_weird
+    if not self.sku == self.sku.gsub(/[^-0-9a-zA-Z]/,'') then
+      errors.add(:sku, I18n.t('system.errors.dont_use_weird_skus'))
+      return false
+    end
+    return true
+  end
+  
   def sku_unique_in_visible
     if self.new_record?
-      number = 0
+      error = self.vendor.items.visible.where(:sku => self.sku).count > 0
     else
-      number = 1
+      error = self.vendor.items.visible.where("sku = '#{self.sku}' AND NOT id = #{ self.id }").count > 0
     end
-    if self.vendor.items.visible.where(:sku => self.sku).count > number
+    if error == true
       errors.add(:sku, I18n.t('activerecord.errors.messages.taken'))
       return
     end
@@ -108,10 +132,10 @@ class Item < ActiveRecord::Base
     return if child_item.nil?
     
     c_id = child_item.id
-    items_which_have_this_child = self.vendor.items.visible.where("sku != '#{ self.sku }'").where(:child_id => c_id)
+    items_which_have_this_child = self.vendor.items.visible.where("sku != '#{ self.sku_was }'").where(:child_id => c_id)
     if items_which_have_this_child.any?
-      skus = items_which_have_this_child.collect {|i| i.sku }
-      errors.add(:child_sku, "items #{ skus.join(',') } already have this child")
+      info = items_which_have_this_child.collect {|i| [i.id, i.sku] }
+      errors.add(:child_sku, "items #{ info.inspect } already have this child #{ self.child_sku }")
     end
   end
   
@@ -202,7 +226,11 @@ class Item < ActiveRecord::Base
   end
   
     def self.csv_headers
-    return [:class,:name,:sku,:price,:quantity,:quantity_sold,:tax_profile_name,:tax_profile_amount,:category_name,:location_name]
+    return [
+                :class, :name, :sku, :price, :quantity, :behavior, 
+                :child_sku, :tax_profile_name, :tax_profile_amount, 
+                :category_name, :location_name
+    ]
   end
   # ----- end CSV methods
 
@@ -210,7 +238,7 @@ class Item < ActiveRecord::Base
     parts = self.gs1_format.split(",")
     return Regexp.new "(\\d{#{ parts[0] }})(\\d{#{ parts[1] }})"
   end
-
+  
   def get_translated_name(locale=:en)
     locale = locale.to_s
     trans = read_attribute(:name_translations)
@@ -247,6 +275,14 @@ class Item < ActiveRecord::Base
   
   def cache_behavior
     write_attribute :behavior, self.vendor.item_types.visible.find_by_id(self.item_type_id).behavior
+  end
+
+  def behavior=(b)
+    it = self.vendor.item_types.visible.find_by_behavior(b)
+    if it then
+      self.item_type = it
+      write_attribute :behavior, it.behavior
+    end
   end
   
   def parent_sku
@@ -338,7 +374,7 @@ class Item < ActiveRecord::Base
   end
   
   def tax_profile_amount=(amnt)
-    tp = self.vendor.tax_profiles.visible.find_by_value(SalorBase.to_float(amnt))
+    tp = self.vendor.tax_profiles.visible.find_by_value(SalorBase.string_to_float(amnt))
     if tp then
       self.tax_profile = tp
     end
@@ -535,6 +571,7 @@ class Item < ActiveRecord::Base
     duplicate_array = Vendor.connection.execute("SELECT name, count(*) FROM items WHERE hidden IS NULL GROUP BY name HAVING count(*) > 1").to_a
   end
 
+  # duplicate_array = Vendor.connection.execute("SELECT id, sku, count(*) FROM items WHERE hidden IS NULL OR hidden IS FALSE GROUP BY sku HAVING count(*) > 1").to_a
   def self.get_sku_duplicate_ids # Item.get_sku_duplicate_ids
     duplicate_array = Vendor.connection.execute("SELECT id, count(*) FROM items WHERE hidden IS NULL OR hidden IS FALSE GROUP BY sku HAVING count(*) > 1").to_a
     #puts "Duplicates: #{ duplicate_array.inspect }"

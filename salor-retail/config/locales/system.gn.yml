@@ -3,6 +3,7 @@ gn:
   activerecord:
     errors:
       messages:
+        dont_use_weird_skus: Nur Aa-Zz und 0-9 sind erlaubt
         accepted: must be accepted
         blank: muss eingegeben werden
         confirmation: stimmt nicht überein
@@ -152,6 +153,6 @@ gn:
       long: ! '%d. %B %Y %H:%M:%S'
       month_and_day: ! '%d. %B'
       salor: ! '%a, %b %d %H:%M'
-      short: ! '%d. %b. %y  %y %H:%M'
+      short: ! '%d. %b. %y  %H:%M'
       time_short: ! '%H:%M'
     pm: ''

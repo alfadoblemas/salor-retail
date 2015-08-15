@@ -83,11 +83,12 @@ sr.fn.onscreen_keyboard.setup = function() {
 
     $.keyboard.layouts['num'] = {
     'default' : [
+      "{b} +",
       "7 8 9",
       "4 5 6",
       "1 2 3",
       "{clear} 0 ,",
-      "{c} {a}"
+      "{c} {a}",
     ]
     };
 
@@ -108,7 +109,7 @@ sr.fn.onscreen_keyboard.make = function(elem) {
   if (elem.hasClass('keyboardable-done')) {
     return;
   }
-  var kbd = $('<div id="' + elem.attr("id") + '_kbd"class="kbd-show-button">&crarr;</div>');
+  var kbd = $('<div id="' + elem.attr("id") + '_kbd" class="kbd-show-button">&crarr;</div>');
 
   kbd.mousedown(function () {
     elem.getkeyboard().reveal();

@@ -1,3 +1,376 @@
+salor-retail (4.0.2.132) wheezy; urgency=medium
+
+  [ Chris ]
+  * Adding Viewport
+
+  [ Jason Knight ]
+  * Expanded development intallation instructions:
+  * Adding a setup.rb file that installs the system, and adding some screenshots
+  * Added screenshot
+  * Added screenshot
+  * Added screenshot
+  * Added screenshot
+  * Added screenshot
+  * Added screenshot
+  * Added screenshot
+  * Added screenshot
+  * Added screenshot
+  * Added screenshot
+  * Added screenshot
+  * Upload and download
+  * Added dropzone.css
+  * Added a new generic search for the listview, also converted generic search to HAML
+
+  [ Jay ]
+  * Adding screen shots
+  * Adding upload/download support for customers
+
+  [ Jason Martin ]
+  * Clean up items_controller code
+  * Adding code to support JS Actions, working
+  * Actions working as a kind of discount strategy. Discounts will be deprecated.
+  * Adding screen shots, cleaning up css
+  * Adding screen shots
+
+  [ Michael Franzl ]
+  * dynamic css positioning fix for makeSelectWidget
+  * hiding upload field for now
+  * translation update
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 23 Apr 2015 20:39:02 +0200
+
+salor-retail (4.0.2.131) wheezy; urgency=medium
+
+  * better fix for no_child_duplicate validation
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 05 Feb 2015 10:30:21 +0100
+
+salor-retail (4.0.2.130) wheezy; urgency=medium
+
+  [ Michael Franzl ]
+  * fixed OrderItem test for gift card redeem
+  * display on customerscreen and receipt factored price of weighed items based on Item.sales_metric
+  * fixed duplicate nil category problem for inventoryReport
+  * new feature: counting inventory will add instead of overwrite real_quantity
+  * new feature: counting inventory will add instead of overwrite real_quantity
+
+  [ michael ]
+  * updated translations
+
+  [ Michael Franzl ]
+  * fix for changing item sku when child present
+  * allow spaces in by_keywords search
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 05 Feb 2015 10:19:38 +0100
+
+salor-retail (4.0.2.129) wheezy; urgency=medium
+
+  * select general search input when on index page
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 15 Jan 2015 19:41:30 +0100
+
+salor-retail (4.0.2.128) wheezy; urgency=medium
+
+  * fixed french translation interpolations
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 08 Jan 2015 16:35:56 +0100
+
+salor-retail (4.0.2.127) wheezy; urgency=medium
+
+  * select first cash register on first login, keep cash register id in session
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 08 Jan 2015 16:08:00 +0100
+
+salor-retail (4.0.2.126) wheezy; urgency=medium
+
+  * fix deletion of inventory reports, code cleanup, fix french translations, change currency and number display to rails methods
+  * fix for french number precisions
+  * fixed translation yaml keys
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 08 Jan 2015 10:32:39 +0100
+
+salor-retail (4.0.2.125) wheezy; urgency=medium
+
+  [ Jason Knight ]
+  * Fixed day select for editing employee logins
+
+  [ Michael Franzl ]
+
+ -- Michael Franzl <office@michaelfranzl.com>  Wed, 07 Jan 2015 20:13:39 +0100
+
+salor-retail (4.0.2.124) wheezy; urgency=medium
+
+  * fixed datepicker in users#show
+
+ -- Michael Franzl <office@michaelfranzl.com>  Wed, 07 Jan 2015 18:07:30 +0100
+
+salor-retail (4.0.2.123) wheezy; urgency=medium
+
+  * fixed french translation
+
+ -- Michael Franzl <office@michaelfranzl.com>  Wed, 07 Jan 2015 17:55:18 +0100
+
+salor-retail (4.0.2.122) wheezy; urgency=medium
+
+  * enabled non-integer taxes
+
+ -- Michael Franzl <office@michaelfranzl.com>  Wed, 07 Jan 2015 17:24:09 +0100
+
+salor-retail (4.0.2.121) wheezy; urgency=medium
+
+  * added UI translation form, updated french translations and other languages
+
+ -- Michael Franzl <office@michaelfranzl.com>  Wed, 07 Jan 2015 13:24:30 +0100
+
+salor-retail (4.0.2.120) wheezy; urgency=medium
+
+  * make add_item_ajax more robust
+  * allow negative prices for gift cards
+  * remember last items#index search in session
+
+ -- Michael Franzl <office@michaelfranzl.com>  Tue, 30 Dec 2014 12:47:31 +0100
+
+salor-retail (4.0.2.119) wheezy; urgency=medium
+
+  * added missing migration for inventory report
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sat, 27 Dec 2014 18:38:53 +0100
+
+salor-retail (4.0.2.118) wheezy; urgency=medium
+
+  [ michael ]
+  * add index for drawer transactions order_id
+
+  [ Michael Franzl ]
+  * fix for nil error, moved subscription dates to orders#print
+
+ -- Michael Franzl <office@michaelfranzl.com>  Mon, 22 Dec 2014 10:37:51 +0100
+
+salor-retail (4.0.2.117) wheezy; urgency=medium
+
+  * inventory report: separate tables for tax profiles
+  * inventory report: separate tables for tax profiles
+
+ -- Michael Franzl <office@michaelfranzl.com>  Tue, 11 Nov 2014 13:32:19 +0100
+
+salor-retail (4.0.2.116) wheezy; urgency=medium
+
+  * allow dashes in SKU filtered by javascript
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sat, 08 Nov 2014 19:28:14 +0100
+
+salor-retail (4.0.2.115) wheezy; urgency=medium
+
+  * protect against special chars in sku search, adapted sku validations
+  * fixed date format
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sat, 08 Nov 2014 18:49:25 +0100
+
+salor-retail (4.0.2.114) wheezy; urgency=low
+
+  * larger new buttons, larger buttons for items index
+
+ -- Michael Franzl <office@michaelfranzl.com>  Wed, 08 Oct 2014 08:15:45 +0200
+
+salor-retail (4.0.2.113) wheezy; urgency=low
+
+  * fixed divide/multiply/assign actions for cent prices, prevent form submission when scanning barcode in actions form
+  * larger edit buttons, fixed actions search by keywords
+
+ -- Michael Franzl <office@michaelfranzl.com>  Wed, 08 Oct 2014 08:05:14 +0200
+
+salor-retail (4.0.2.112) wheezy; urgency=low
+
+  * added plus and backspace to numpad
+  * onscreen keyboard for drawer transaction amount and notes, css improvements
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sat, 04 Oct 2014 19:46:16 +0200
+
+salor-retail (4.0.2.111) wheezy; urgency=low
+
+  * moved check for completed order into controllers
+  * set no_inc for OrderItem for all but quantity change
+  * code cleanup
+
+ -- Michael Franzl <office@michaelfranzl.com>  Fri, 26 Sep 2014 11:03:45 +0200
+
+salor-retail (4.0.2.110) wheezy; urgency=low
+
+  * disabled old refund method. now, refunds are just negative items
+  * broken items pagination, seach by keywords for orders and broken items, added orders to main menu
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 25 Sep 2014 12:19:33 +0200
+
+salor-retail (4.0.2.109) wheezy; urgency=low
+
+  * make_select_widget css fix
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sun, 21 Sep 2014 11:43:23 +0200
+
+salor-retail (4.0.2.108) wheezy; urgency=low
+
+  * protect against OrderItem modification when Order has been completed in the meantime
+  * updated translations
+
+ -- Michael Franzl <office@michaelfranzl.com>  Tue, 09 Sep 2014 18:24:41 +0200
+
+salor-retail (4.0.2.107) wheezy; urgency=low
+
+  * wider bottom margin for paper printing
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sun, 07 Sep 2014 15:32:57 +0200
+
+salor-retail (4.0.2.106) wheezy; urgency=low
+
+  * fix for salor-bin css offsets for makeSelectWidget
+
+ -- Michael Franzl <office@michaelfranzl.com>  Mon, 25 Aug 2014 17:40:32 +0200
+
+salor-retail (4.0.2.105) wheezy; urgency=low
+
+  * financial report: fix empty category, only one page if possible
+
+ -- Michael Franzl <office@michaelfranzl.com>  Mon, 25 Aug 2014 17:26:56 +0200
+
+salor-retail (4.0.2.104) wheezy; urgency=low
+
+  * arithmetic expressions for price edits on POS screen, country select box fix
+
+ -- Michael Franzl <office@michaelfranzl.com>  Tue, 12 Aug 2014 13:58:23 +0200
+
+salor-retail (4.0.2.103) wheezy; urgency=low
+
+  [ root ]
+  * fix
+
+  [ Michael Franzl ]
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sat, 12 Jul 2014 15:20:46 +0200
+
+salor-retail (4.0.2.102) wheezy; urgency=low
+
+  * category selection for sales statistics, JS select_widget style improvements
+  * build
+  * css fix
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sat, 12 Jul 2014 11:07:05 +0200
+
+salor-retail (4.0.2.101) wheezy; urgency=low
+
+  * build
+  * dont allow negative prices, use buyback instead
+  * translations
+  * buyback fixes
+
+ -- Michael Franzl <office@michaelfranzl.com>  Fri, 11 Jul 2014 17:45:54 +0200
+
+salor-retail (4.0.2.100) wheezy; urgency=low
+
+  * different permissions for log directory
+
+ -- Michael Franzl <office@michaelfranzl.com>  Tue, 01 Jul 2014 12:14:06 +0200
+
+salor-retail (4.0.2.99) wheezy; urgency=low
+
+  * sku cleanup on import, fixed rake task parameter
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 19 Jun 2014 08:57:27 +0200
+
+salor-retail (4.0.2.98) wheezy; urgency=low
+
+  [ Jason Martin ]
+  * build
+
+  [ Michael Franzl ]
+  * optional customer screen background image
+  * close drawer transaction popup immediately to prevent double transactions when double click and slow backend request
+
+ -- Michael Franzl <office@michaelfranzl.com>  Thu, 19 Jun 2014 08:12:47 +0200
+
+salor-retail (4.0.2.97) wheezy; urgency=low
+
+  * build
+
+ -- Jason Martin <jason@jason-knight-martin.com>  Tue, 17 Jun 2014 12:46:02 -0400
+
+salor-retail (4.0.2.96) wheezy; urgency=low
+
+  [ Jason Knight ]
+  * Added SKU filtering and SKU repair script rake salor:fix_weird_skus
+  * Moved translation to system.errors for weird SKU validation
+
+  [ Jason Martin ]
+  * build
+
+ -- Jason Martin <jason@jason-knight-martin.com>  Tue, 17 Jun 2014 12:35:30 -0400
+
+salor-retail (4.0.2.95) wheezy; urgency=low
+
+  * duplicate sku fix
+
+ -- Michael Franzl <office@michaelfranzl.com>  Mon, 16 Jun 2014 22:39:36 +0200
+
+salor-retail (4.0.2.94) wheezy; urgency=low
+
+  * newline to cronjob, better error reporting
+  * printing copies fix
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sun, 15 Jun 2014 11:28:48 +0200
+
+salor-retail (4.0.2.93) wheezy; urgency=low
+
+  * less complex svg app icon
+  * start salor-bin fullscreen
+  * thermal financial report button fix
+
+ -- Michael Franzl <office@michaelfranzl.com>  Fri, 06 Jun 2014 18:51:49 +0200
+
+salor-retail (4.0.2.92) wheezy; urgency=low
+
+  * style improvements
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sun, 01 Jun 2014 12:50:23 +0200
+
+salor-retail (4.0.2.91) wheezy; urgency=low
+
+  * background image for customer screen
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sun, 01 Jun 2014 12:32:24 +0200
+
+salor-retail (4.0.2.90) wheezy; urgency=low
+
+  * sales statistics fix
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sat, 31 May 2014 15:15:00 +0200
+
+salor-retail (4.0.2.89) wheezy; urgency=low
+
+  * added sales statistics by category
+  * updated translations and correct header for financial report and sales report
+  * style improvements for end of day screen
+  * fixed documentation iframe link
+
+ -- Michael Franzl <office@michaelfranzl.com>  Wed, 28 May 2014 13:40:26 +0200
+
+salor-retail (4.0.2.88) wheezy; urgency=low
+
+  * added copies input for printing labels
+
+ -- Michael Franzl <office@michaelfranzl.com>  Tue, 20 May 2014 11:27:58 +0200
+
+salor-retail (4.0.2.87) wheezy; urgency=low
+
+  * prevent js endless loop on weighing of 0 weight item, console.log cleanup, pos quantity formatting
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sun, 18 May 2014 12:30:56 +0200
+
+salor-retail (4.0.2.86) wheezy; urgency=low
+
+  * do not increment weighed items
+  * fix rounding problem
+
+ -- Michael Franzl <office@michaelfranzl.com>  Sat, 17 May 2014 16:33:23 +0200
+
 salor-retail (4.0.2.85) wheezy; urgency=low
 
   [ Jason Knight ]
@@ -330,7 +703,7 @@ salor-retail (4.0.2.39) unstable; urgency=low
 
   [ Jason Martin ]
 
- -- Jason Martin <jason@jason-knight-martin.com>  Mon, 16 Dec 2013 12:12:36 -0500
+ -- Jason Martin <jason@jason-knight-martin.com>  Tue, 17 Jun 2014 12:24:02 -0400
 
 salor-retail (4.0.2.38) unstable; urgency=low
 

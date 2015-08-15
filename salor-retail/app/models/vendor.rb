@@ -104,7 +104,6 @@ class Vendor < ActiveRecord::Base
     end
   end
   
-  
   def region
     SalorRetail::Application::COUNTRIES_REGIONS[self.country] 
   end
@@ -202,66 +201,9 @@ class Vendor < ActiveRecord::Base
     end
     return nr
   end
-  
-  def self.reset_for_tests
-    t = Time.now - 24.hours
-    Drawer.update_all :amount => 0
-    Order.where(:created_at => t...(Time.now)).delete_all
-    OrderItem.where(:created_at => t...(Time.now)).delete_all
-    DrawerTransaction.where(:created_at => t...(Time.now)).delete_all
-    PaymentMethod.where(:created_at => t...(Time.now)).delete_all
-    Category.update_all :cash_made => 0
-    Category.update_all :quantity_sold => 0
-    Location.update_all :cash_made => 0
-    Location.update_all :quantity_sold => 0
-    SalorConfiguration.update_all :calculate_tax => false
-    CashRegister.update_all :require_password => false
-  end
-  
-  def self.debug_setup
-    i = 110
-    text = ""
-    User.all.each do |e|
-      e.update_attribute :password, i.to_s
-      text += "#{e.id} #{e.username}: #{i}\n"
-      i += 1
-    end
-    puts text
-  end
-  
-  def self.debug_user_info
-    text = ""
-    User.all.each do |e|
-      text += e.debug_info
-    end
-    puts text
-  end
-  
+
   def net_prices
     ['cc', 'us', 'ca'].include? self.country
-  end
-  
-  def self.debug_order_info(fname,limit=1000)
-    File.open(fname,"w+") do |f|
-      Order.order("created_at desc").limit(limit).each do |order|
-        pms = {}
-        order.payment_methods.each do |pm|
-          pms[pm.internal_type] ||= { :count => 0, :name => "", :values => []}
-          pms[pm.internal_type][:count] += 1
-          if pms[pm.internal_type][:count] > 1 then
-            f.write "!Problem: more than one of the same pm on an order\n"
-          end
-          pms[pm.internal_type][:name] = pm.name
-          pms[pm.internal_type][:values] << pm.amount
-        end
-        f.write "Order: #{order.id} with NR #{order.nr} or QNR #{order.qnr}\n"
-        f.write "\t Date: #{order.created_at}\n"
-        f.write "\t Owner: #{order.user.last_name}, #{order.user.first_name} as #{order.user.username}\n"
-        f.write "\t Order Items: #{order.order_items.visible.count} visible of #{order.order_items.count}\n"
-        f.write "\t Payment Methods: #{pms.to_json}\n"
-      end
-    end
-    return "Done"
   end
   
   def get_end_of_day_report(from=nil, to=nil, drawer=nil)
@@ -308,6 +250,7 @@ class Vendor < ActiveRecord::Base
       :is_quote => nil,
       :behavior => 'normal',
     ).select("DISTINCT category_id")
+
 #     used_categories = self.categories.visible.order(:name)
 #     used_categories << nil
     used_categories.each do |r|
@@ -321,7 +264,7 @@ class Vendor < ActiveRecord::Base
         :is_quote => nil,
         :category_id => cat,
         :behavior => 'normal'
-      ).where("total_cents > 0").sum(:total_cents)
+      ).where("is_buyback = FALSE OR is_buyback IS NULL").sum(:total_cents)
       pos_total = Money.new(pos_total_cents, self.currency)
       
       pos_tax_cents = self.order_items.visible.where(
@@ -331,7 +274,7 @@ class Vendor < ActiveRecord::Base
         :is_quote => nil,
         :category_id => cat,
         :behavior => 'normal'
-      ).where("total_cents > 0").sum(:tax_amount_cents)
+      ).where("is_buyback = FALSE OR is_buyback IS NULL").sum(:tax_amount_cents)
       pos_tax = Money.new(pos_tax_cents, self.currency)
       
       neg_total_cents = self.order_items.visible.where(
@@ -340,9 +283,8 @@ class Vendor < ActiveRecord::Base
         :is_proforma => nil,
         :is_quote => nil,
         :category_id => cat,
-        :is_buyback => true,
         :behavior => 'normal'
-      ).where("total_cents < 0").sum(:total_cents)
+      ).where("is_buyback = TRUE").sum(:total_cents)
       neg_total = Money.new(neg_total_cents, self.currency)
       
       neg_tax_cents = self.order_items.visible.where(
@@ -351,9 +293,8 @@ class Vendor < ActiveRecord::Base
         :is_proforma => nil,
         :is_quote => nil,
         :category_id => cat,
-        :is_buyback => true,
         :behavior => 'normal'
-      ).where("total_cents < 0").sum(:tax_amount_cents)
+      ).where("is_buyback = TRUE").sum(:tax_amount_cents)
       neg_tax = Money.new(neg_tax_cents, self.currency)
       
       unless pos_total.zero?
@@ -374,9 +315,6 @@ class Vendor < ActiveRecord::Base
         categories_sum[:neg][:gro] += categories[:neg][label][:gro]
       end
     end
-      
-          
-      
     
     # Taxes
     taxes = {
@@ -402,7 +340,7 @@ class Vendor < ActiveRecord::Base
         :is_quote => nil,
         :tax => r.tax,
         :behavior => 'normal'
-      ).where("total_cents > 0").sum(:total_cents)
+      ).where("is_buyback = FALSE OR is_buyback IS NULL").sum(:total_cents)
       pos_total = Money.new(pos_total_cents, self.currency)
       
       pos_tax_cents = self.order_items.visible.where(
@@ -412,7 +350,7 @@ class Vendor < ActiveRecord::Base
         :is_quote => nil,
         :tax => r.tax,
         :behavior => 'normal'
-      ).where("total_cents > 0").sum(:tax_amount_cents)
+      ).where("is_buyback = FALSE OR is_buyback IS NULL").sum(:tax_amount_cents)
       pos_tax = Money.new(pos_tax_cents, self.currency)
       
       neg_total_cents = self.order_items.visible.where(
@@ -421,9 +359,8 @@ class Vendor < ActiveRecord::Base
         :is_proforma => nil,
         :is_quote => nil,
         :tax => r.tax,
-        :is_buyback => true,
         :behavior => 'normal'
-      ).where("total_cents < 0").sum(:total_cents)
+      ).where("is_buyback = TRUE").sum(:total_cents)
       neg_total = Money.new(neg_total_cents, self.currency)
       
       neg_tax_cents = self.order_items.visible.where(
@@ -432,9 +369,8 @@ class Vendor < ActiveRecord::Base
         :is_proforma => nil,
         :is_quote => nil,
         :tax => r.tax,
-        :is_buyback => true,
         :behavior => 'normal'
-      ).where("total_cents < 0").sum(:tax_amount_cents)
+      ).where("is_buyback = TRUE").sum(:tax_amount_cents)
       neg_tax = Money.new(neg_tax_cents, self.currency)
       
       taxes[:pos][r.tax][:tax] = pos_tax
@@ -461,10 +397,9 @@ class Vendor < ActiveRecord::Base
       :is_proforma => nil,
       :is_quote => nil,
     ).select("DISTINCT payment_method_id")
-    #used_payment_methods = self.payment_methods.visible.order(:name)
+
     used_payment_methods.each do |r|
       pm = self.payment_methods.find_by_id(r.payment_method_id)
-      #raise "#{ r.inspect }" if pm.nil?
       
       next if pm.change # ignore change. we only consider cash (separately), and all others pms
       
@@ -597,8 +532,7 @@ class Vendor < ActiveRecord::Base
     drawer_transactions = self.drawer_transactions.visible.where(
       :created_at => from..to,
       :complete_order => nil,
-      :drawer_id => drawer,
-      :refund => nil
+      :drawer_id => drawer
     )
 
     drawer_transactions.each do |dt|
@@ -642,7 +576,6 @@ class Vendor < ActiveRecord::Base
     gift_card_redeem_total = - Money.new(gift_cards_redeemed.sum(:total_cents), self.currency)
     
 
-    
     report = Hash.new
     report['categories'] = categories
     report['taxes'] = taxes
@@ -677,46 +610,21 @@ class Vendor < ActiveRecord::Base
     return report
   end
   
-  def get_statistics(from, to)
-    orders = self.orders.visible.where(:paid => true, :completed_at => from..to)
-
+  # OrderItem.connection.execute("SELECT category_id, item_id, sku, ROUND(SUM(quantity), 2), SUM(total_cents) FROM order_items WHERE hidden IS NULL GROUP BY category_id, item_id ").to_a
+  
+  def get_sales_statistics(from, to, category_id=nil)
+    category_id = nil if category_id == 0
+    
+    if category_id
+      category_query = "AND category_id = #{ category_id }"
+    else
+      category_query = ""
+    end
+    
+    order_item_quantities_by_category = OrderItem.connection.execute("SELECT category_id, item_id, sku, SUM(quantity), SUM(total_cents) FROM order_items WHERE vendor_id = #{ self.id } AND hidden IS NULL AND completed_at BETWEEN '#{ from.strftime("%Y-%m-%d %H:%M:%S") }' AND '#{ to.strftime("%Y-%m-%d %H:%M:%S") }'  #{ category_query } GROUP BY category_id, item_id").to_a
     reports = {
-        :items => {},
-        :categories => {},
-        :locations => {}
+      :order_item_quantities_by_category => order_item_quantities_by_category,
     }
-    
-    # TODO: Replace this loop by self.mymodel.where().sum(:blah) SQL queries for high speed. removed the UI icon in the meantime
-#     orders.each do |o|
-#       o.order_items.visible.each do |oi|
-#         next if oi.item.nil?
-#         key = oi.item.name + " (#{oi.price})"
-#         cat_key = oi.get_category_name
-#         loc_key = oi.get_location_name
-#         
-#         reports[:items][key] ||= {:sku => '', :quantity_sold => 0.0, :cash_made => 0.0 }
-#         reports[:items][key][:quantity_sold] += oi.quantity
-#         reports[:items][key][:cash_made] += oi.total
-#         reports[:items][key][:sku] = oi.sku
-#         
-#         reports[:categories][cat_key] ||= { :quantity_sold => 0.0, :cash_made => 0.0 }
-#         
-#         reports[:categories][cat_key][:quantity_sold] += oi.quantity
-#         reports[:categories][cat_key][:cash_made] += oi.total
-#         
-#         reports[:locations][loc_key] ||= { :quantity_sold => 0.0, :cash_made => 0.0 }
-#         
-#         reports[:locations][loc_key][:quantity_sold] += oi.quantity
-#         reports[:locations][loc_key][:cash_made] += oi.total
-#       end
-#     end
-# 
-#     reports[:categories_by_cash_made] = reports[:categories].sort_by { |k,v| v[:cash_made] }
-#     reports[:categories_by_quantity_sold] = reports[:categories].sort_by { |k,v| v[:quantity_sold] }
-#     reports[:locations_by_cash_made] = reports[:locations].sort_by { |k,v| v[:cash_made] }
-#     reports[:locations_by_quantity_sold] = reports[:locations].sort_by { |k,v| v[:quantity_sold] }
-#     reports[:items].sort_by { |k,v| v[:quantity_sold] }
-    
     return reports
   end
   
@@ -732,7 +640,7 @@ class Vendor < ActiveRecord::Base
     vp.codepage = 0
     vp.baudrate = 9600
 
-    print_engine = Escper::Printer.new(self.company.mode, vp, File.join(SalorRetail::Application::SR_DEBIAN_SITEID, self.vendor.hash_id))
+    print_engine = Escper::Printer.new(self.company.mode, vp, File.join(SalorRetail::Application::SR_DEBIAN_SITEID, self.hash_id))
     print_engine.open
     print_engine.print(0, text)
     print_engine.close
@@ -1020,20 +928,26 @@ class Vendor < ActiveRecord::Base
     if params[:download] == 'true'
       return Escper::Asciifier.new.process(text)
     elsif cash_register.salor_printer
-      return Escper::Asciifier.new.process(text)
+      return Escper::Asciifier.new.process(text) * params[:copies].to_i
     elsif self.company.mode == 'local'
       if params[:type] == 'sticker'
         printer_path = cash_register.sticker_printer
       else
         printer_path = cash_register.thermal_printer
       end
+      
+      params[:copies] ||= 1
+
       vp = Escper::VendorPrinter.new({})
       vp.id = 0
       vp.name = cash_register.name
       vp.path = printer_path
-      vp.copies = 1
+      vp.copies = params[:copies].to_i
       vp.codepage = 0
       vp.baudrate = 9600
+      
+      
+      SalorBase.log_action "[Vendor#print_labels]: #{ vp.inspect }"
       
       print_engine = Escper::Printer.new(self.company.mode, vp, File.join(SalorRetail::Application::SR_DEBIAN_SITEID, self.hash_id))
       print_engine.open
@@ -1108,8 +1022,6 @@ class Vendor < ActiveRecord::Base
     end
     
     return filtered_tests.join("\n")
-    
-    
   end
   
   def create_inventory_report
@@ -1137,6 +1049,7 @@ class Vendor < ActiveRecord::Base
           category_id,
           name,
           currency,
+          tax_profile_id,
           sku
          ) SELECT 
             ir.id,
@@ -1152,6 +1065,7 @@ class Vendor < ActiveRecord::Base
             i.category_id,
             i.name,
             i.currency,
+            i.tax_profile_id,
             i.sku FROM
           items AS i, 
           inventory_reports AS ir WHERE 
@@ -1160,7 +1074,7 @@ class Vendor < ActiveRecord::Base
             i.hidden IS NULL
     ]
     Item.connection.execute(sql)
-    Item.connection.execute("UPDATE items SET quantity = real_quantity, real_quantity_updated = NULL WHERE real_quantity_updated IS TRUE AND vendor_id=#{ self.id} AND company_id=#{ self.company_id }")
+    Item.connection.execute("UPDATE items SET quantity = real_quantity, real_quantity_updated = NULL, real_quantity = 0 WHERE real_quantity_updated IS TRUE AND vendor_id=#{ self.id} AND company_id=#{ self.company_id }")
   end
   
   def recurrable_subscription_orders

@@ -71,8 +71,6 @@ $(function () {
   jQuery.expr[':'].focus = function( elem ) {
     return elem === document.activeElement && ( elem.type || elem.href );
   };
-  
-  $('#generic_search_input').val('');
 
   $('.stripe-me tr:even').addClass('even');
   $('.stripe-me tr:odd').addClass('odd');
@@ -118,14 +116,14 @@ $(function () {
   
   
   // make select widget
-  if (typeof workstation != 'undefined') {
+  if (sr.data.session.other.workstation == true) {
     $('select').each(function () {
       if ($(this).val() == '') {
-      shared.makeSelectWidget(i18n.views.single_words.choose,$(this));
+        shared.makeSelectWidget(i18n.views.single_words.choose,$(this));
       } else if ($(this).find("option:selected").html()) {
-      shared.makeSelectWidget($(this).find("option:selected").html(),$(this));
+        shared.makeSelectWidget($(this).find("option:selected").html(),$(this));
       } else {
-      shared.makeSelectWidget($(this).find("option:first").html(),$(this));
+        shared.makeSelectWidget($(this).find("option:first").html(),$(this));
       }
     }); 
   } 

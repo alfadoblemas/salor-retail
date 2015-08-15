@@ -17,15 +17,19 @@ sr.fn.math.roundNumber = function(num, dec) {
   return result;
 }
 
-sr.fn.math.toDelimited = function(number) {
+sr.fn.math.toDelimited = function(number, precision) {
   if (typeof number == 'undefined') {
     sr.fn.debug.echo("warning in toDelimited");
     return "";
   }
   
+  if (typeof precision == 'undefined') {
+    precision = 2;
+  }
+    
   var match, property, integerPart, fractionalPart;
   var settings = {
-    precision: 2,
+    precision: precision,
     unit: Region.number.currency.format.unit,
     separator: Region.number.currency.format.separator,
     delimiter : Region.number.currency.format.delimiter
@@ -76,7 +80,8 @@ sr.fn.math.toPercent = function(number) {
     return "";
   }
   var match, property, integerPart, fractionalPart;
-  var settings = {         precision: 0,
+  var settings = { 
+    precision: 1,
     unit: "%",
     separator: Region.number.currency.format.separator,
     delimiter : Region.number.currency.format.delimiter

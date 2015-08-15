@@ -30,7 +30,7 @@ SalorRetail::Application.routes.draw do
   match 'vendors/:id/logo' => 'vendors#logo'
   match 'vendors/:id/logo_invoice' => 'vendors#logo_invoice'
   match "vendors/report_day" => "vendors#report_day"
-  match "vendors/statistics" => "vendors#statistics"
+  match "vendors/sales_statistics" => "vendors#sales_statistics"
   
   match "buttons/position" => "buttons#position"
   
@@ -50,14 +50,11 @@ SalorRetail::Application.routes.draw do
   match "orders/print_order_receipt" => "orders#print_order_receipt"
   match "orders/print_confirmed" => "orders#print_confirmed"
   match "orders/render_order_receipt" => "orders#render_order_receipt"
-  match "orders/refund_item" => "orders#refund_item"
-  match "orders/refund_order" => "orders#refund_order"
   match "orders/last_five_orders" => "orders#last_five_orders"
   match "orders/clear" => "orders#clear"
   match "orders/remove_payment_method" => "orders#remove_payment_method"
   match "orders/bancomat" => "orders#bancomat"
   match "orders/offline" => "orders#offline"
-  match "order_items/index" => "order_items#index"
   match "orders/new_pos" => "orders#new_pos"
   match "orders/swap" => "orders#swap"
   match "orders/prev_order" => "orders#prev_order"
@@ -68,7 +65,6 @@ SalorRetail::Application.routes.draw do
   match "orders/update_pos_display" => "orders#update_pos_display"
   match "orders/delete_order_item" => "orders#delete_order_item"
   match "orders/connect_loyalty_card" => "orders#connect_loyalty_card"
-  match "orders/split_order_item" => "orders#split_order_item"
   match "orders/print_receipt" => "orders#print_receipt"
   match "orders/void" => "orders#void"
   match "orders/:id/print" => "orders#print"
@@ -89,12 +85,14 @@ SalorRetail::Application.routes.draw do
   match "customers/labels" => "customers#labels"
   match "customers/render_label" => "customers#render_label"
   match "customers/download" => "customers#download"
+  match "customers/upload" => "customers#upload"
   match "customers/upload_optimalsoft" => "customers#upload_optimalsoft"
   
   
 
   match "cash_registers/end_of_day" => "cash_registers#end_of_day"
 
+  
   
   
   match "items/search" => "items#search"
@@ -106,20 +104,21 @@ SalorRetail::Application.routes.draw do
   match "items/labels" => "items#labels"
   match "items/selection" => "items#selection"
   match "items/upload" => "items#upload"
-  match "items/upload" => "items#upload"
   match "items/upload_house_of_smoke" => "items#upload_house_of_smoke"
   match "items/upload_danczek_tobaccoland_plattner" => "items#upload_danczek_tobaccoland_plattner"
   match "items/upload_optimalsoft" => "items#upload_optimalsoft"
   match "items/download" => "items#download"
   match "items/info" => "items#info"
   match "items/gift_cards" => "items#gift_cards"
-  match "items/inventory_json" => "items#inventory_json"
   match "items/create_ajax" => "items#create_ajax"
   match "items/render_label" => "items#render_label"
-  match "items/create_inventory_report" => "items#create_inventory_report"
-  get 'items/update_real_quantity'
   
-  match 'inventory_reports/current' => 'inventory_reports#current'
+  
+  
+  match "inventory_reports/current" => "inventory_reports#current"
+  match "inventory_reports/update_real_quantity" => "inventory_reports#update_real_quantity"
+  match "inventory_reports/create_inventory_report" => "inventory_reports#create_inventory_report"
+  match "inventory_reports/inventory_json" => "inventory_reports#inventory_json"
   
 
   
@@ -131,6 +130,9 @@ SalorRetail::Application.routes.draw do
   match "shipments/add_item" => "shipments#add_item"
   
   match "shippers/update_all" => "shippers#update_all"
+  
+  match 'translations' => 'translations#index'
+  match 'translations/set' => 'translations#set'
   
   
   match "actions/create" => "actions#create"
@@ -177,7 +179,6 @@ SalorRetail::Application.routes.draw do
   resources :users
   resources :actions
   resources :plugins
-  resources :order_items
   resources :orders
   resources :items do
     get :new_action

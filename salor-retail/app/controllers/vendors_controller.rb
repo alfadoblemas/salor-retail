@@ -153,6 +153,39 @@ class VendorsController < ApplicationController
 
     value = params[:value]
     if @inst.respond_to?("#{ params[:field] }=".to_sym)
+
+      if @inst.class == OrderItem
+        
+        if @inst.order.completed_at
+          # don't allow changing of items when order is completed. this may happen when store is operating several screens and lack of coordination.
+          $MESSAGES[:prompts] << I18n.t("system.errors.deletion_of_item_when_order_completed")
+          # render view
+          @order = @inst.order
+          @order_items = []
+          render 'orders/update_pos_display'
+          return
+        end
+        
+        
+        if params[:field] == "price"
+          if params[:value].include? "+"
+            # this is an arithmetrical expression. eval it!
+            evalstring = params[:value]
+            evalstring.gsub! ",", "." # replace europaean comma with ruby comma
+            evalstring.gsub! /[^0-9,.+]/, "" # security, allow only additions of numbers
+            begin
+              value = eval(evalstring)
+            rescue SyntaxError => se
+              value = 0
+            end
+          end
+        end
+        
+        if params[:field] != "quantity"
+          @inst.no_inc = true
+        end
+      end
+      
       log_action "edit_field_on_child: sending #{  params[:field] } = #{ value } to #{ @inst.class } id #{ @inst.id }"
       @inst.send("#{ params[:field] }=", value)
       result = @inst.save
@@ -163,7 +196,7 @@ class VendorsController < ApplicationController
       end
       
     else
-      msg = "VendorsController#edit_field_on_child: #{ klass } does not respond well to setter method #{ params[:field] }!"
+      msg = "VendorsController#edit_field_on_child: #{ klass } does not respond to setter method #{ params[:field] }!"
       log_action msg
       raise msg
     end
@@ -237,16 +270,13 @@ class VendorsController < ApplicationController
     @histories = @current_vendor.histories.order("created_at desc").page(params[:page]).per(@current_vendor.pagination)
   end
   
-  def statistics
-    f, t = assign_from_to(params)
-    params[:limit] ||= 15
-    @limit = params[:limit].to_i - 1
-    
-    @reports = @current_vendor.get_statistics(f, t)
-    
-    view = SalorRetail::Application::CONFIGURATION[:reports][:style]
-    view ||= 'default'
-    render "/vendors/reports/#{view}/page"
+  def sales_statistics
+    @from, @to = assign_from_to(params)
+    @categories = @current_vendor.categories.visible
+    @category_id = params[:category_id].to_i
+    @reports = @current_vendor.get_sales_statistics(@from, @to, @category_id)
+
+    render "/vendors/sales_statistics"
   end
   
   def export
@@ -265,24 +295,12 @@ class VendorsController < ApplicationController
   end
 
   def labels
-    render :layout => false    
+    render :layout => false
   end
   
   def display_logo
     render :layout => 'customer_display'
   end
-  
-#   def backup
-#     configpath = SalorRetail::Application::SR_DEBIAN_SITEID == 'none' ? 'config/database.yml' : "/etc/salor-retail/#{SalorRetail::Application::SR_DEBIAN_SITEID}/database.yml"
-#     dbconfig = YAML::load(File.open(configpath))
-#     mode = ENV['RAILS_ENV'] ? ENV['RAILS_ENV'] : 'development'
-#     username = dbconfig[mode]['username']
-#     password = dbconfig[mode]['password']
-#     database = dbconfig[mode]['database']
-#     `mysqldump -u #{username} -p#{password} #{database} | bzip2 -c > #{Rails.root}/tmp/backup-#{$Vendor.id}.sql.bz2`
-# 
-#     send_file("#{Rails.root}/tmp/backup-#{$Vendor.id}.sql.bz2",:type => :bzip,:disposition => "attachment",:filename => "backup-#{$Vendor.id}.sql.bz2")
-#   end
 
 
   private

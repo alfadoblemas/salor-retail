@@ -8,6 +8,8 @@
     = number_to_percentage item.price
   - elsif item.behavior == 'coupon' and item.coupon_type == 3
     /nothing
+  - elsif not item.buy_price.zero?
+    == #{ humanized_money_with_symbol item.price } (#{ humanized_money_with_symbol item.buy_price })
   - else
     = humanized_money_with_symbol item.price
   
@@ -16,7 +18,7 @@
 %td
   - if item.parent
     == #{ item.quantity_with_stock.to_i } (#{ item.quantity_with_recursion.to_i })
-  - elsif item.quantity_with_stock == Integer(item.quantity_with_stock)
+  - elsif item.quantity_with_stock == Integer(item.quantity_with_stock.to_i)
     = item.quantity_with_stock.to_i
   - else
     = item.quantity_with_stock
@@ -29,7 +31,7 @@
   %td=raw(col[:column])
 %td
   - if @current_user.can(:edit_items)
-    = link_to salor_icon(:edit,{},20), edit_item_path(item)
+    = link_to salor_icon(:edit,{},32), edit_item_path(item)
 %td
   - if @current_user.can(:destroy_items)
-    = link_to(salor_icon(:delete,{},20), item, :confirm => 'Are you sure?', :method => :delete)
+    = link_to(salor_icon(:delete,{},32), item, :confirm => 'Are you sure?', :method => :delete)

@@ -166,6 +166,7 @@ cn:
         quantity: quantity 數量
         sku: SKU
         stock_location_id: 庫存位置
+      shipper_name: Shipper
       shipper_sku: 發貨人SKU
       sku: SKU
       start_amount: 開始金額
@@ -216,7 +217,6 @@ cn:
       when: 何時
       whento: When
       width: 寬度
-      shipper_name: Shipper
     models:
       action:
         one: 行動
@@ -370,6 +370,7 @@ cn:
     update_location: 更新位置
     update_real_quantity: 更新實際數量
     users: users
+    action_apply_to_area: Apply this action to
   helpers:
     select:
       prompt: 請選擇
@@ -415,12 +416,16 @@ cn:
       only_for_tobacco_stores: 此功能只有在煙草店. 煙草項目現在將被創建和更新. 這一行動將需要大約20分鐘. 你真的確定要繼續嗎?
       report: Report
     inventory_report:
+      add_quantity: add quantity
+      current_quantity: Current quantity
       no_category: No Category
       price: 售價
       subtotal_purchase_price: 小計購買價格
       subtotal_selling_price: 小計銷售價格
+      sum_purchase_price: Sum Purchase Price
+      sum_selling_price: Sum Selling Price
       title: 庫存報告
-      total_buying_price: 總和購買價格
+      total_purchase_price: Total Purchase Price
       total_selling_price: 總和銷售價格
     selection:
       print: Print
@@ -487,6 +492,7 @@ cn:
     end_day: end day 結束日
     enter_inventory_items: Enter
     general_configuration: 一般組態
+    gift_cards: Gift Cards
     home: 主頁
     inventory_report: 庫存報告
     invoice_blurbs: Invoice Blurbs
@@ -721,6 +727,7 @@ cn:
     cashier: 出納員
     manager: 經理
     stockboy: 補充庫存的人
+  sales_statistics: Sale Statistics
   shipments:
     index:
       report: 報告
@@ -739,11 +746,18 @@ cn:
       auto_drop_failed: 系統沒自動下拉，請手動創建一個開始一天的現金下降
       cannot_edit_completed_order: 該訂單完成後, 不能修改.
       cannot_reorder: 沒有任何產品必須重新排序.
+      cannot_set_negative_price: Setting negative prices is not allowed. Please switch
+        to buyback mode and enter a positive price.
       child_sku_must_exist: 子項必須存在!
       coupon_cannot_be_buy_one_get_one: 優惠券 %{sku} 不能買一送一當應用到 %{applies}
       coupon_not_enough_items: 你還沒有購買足夠的產品申請
       csv_item_exists: 產品 %{sku} 存在!
       csv_item_failed: ! '%{id} %{i} 失敗.'
+      deletion_of_item_when_order_completed: This order has already been completed
+        at a differnt location. Please click the "New" button to start a new order.
+      dont_use_negative_prices: Prices cannot be negative. Use positive buyback price
+        instead.
+      dont_use_weird_skus: Only Aa-Zz and 0-9 are permitted in the SKU field
       failed_to_save_parts: 無法儲存的部分. 請檢查這些部分是否存在.
       gift_card_empty: 禮品卡是空的, 通知客戶, 並摧毀卡.
       gs1_item_not_found: 禮品標記為gs1, 但 %{sku} 是不正確的格式.
@@ -777,6 +791,7 @@ cn:
       shipment_item_nil: 產品 returned from_shipment_item 是零?
       sku_must_be_unique: ! '%{sku} 必須是唯一的'
       value_not_set: 未設置
+    finish_day: End of day
     inventory_updated: 庫存更新了
     logged_in_as: 登錄為
     login: 登錄
@@ -832,12 +847,21 @@ cn:
       transaction_tag: transaction tag
       transaction_total: transaction total
       transactions: transactions
+    sales_statistics:
+      category: Category
+      from: From
+      item_name: Item name
+      quantity: Quantity
+      sum: Sum
+      title: Sales Statistics
+      to: To
   views:
     advanced_field: 先進的現場
     cash_register_heading: ! '%{name} 為 %{store}'
     cash_registers: 收款台
     category_heading: 類別 %{name} 為 %{store}
     change: 零錢
+    copies: Copies
     create_new_item: xxx Create New Article
     customers: 客戶
     download_may_last_long: 此下載可能會持續很長時間. 繼續嗎?
@@ -887,6 +911,14 @@ cn:
     notice:
       cache_was_cleared: 刪除緩存文件刪除了.
       csv_edit_starting: CSV編輯起動了
+      delete_completed_order: This order is already completed. Cannot delete.
+      edit_completed_order: This order is already completed. Cannot edit it.
+      edit_order_by_other_user: This order is currently edited by user %{username}.
+        Cannot open it. User %{username} must click on the 'New' button, then try
+        again.
+      item_not_existing: This item did not exist. It has been created and the price
+        set to zero. You can change the price and it will be saved permanently in
+        the database.
       model_create: ! '%{model} 成功創建了'
       model_edit: ! '%{model} 編輯成功了'
       move_real_quantities_success: 產品數量已成功更新了
@@ -941,6 +973,7 @@ cn:
       to: 至
       top: 頂部
       waiting: 等候...
+      xor: OR
     sticky_ticket: 黏標籤
     stock_locations: 貨物位置
     subtotal: 小計
@@ -950,11 +983,13 @@ cn:
     username: 用戶名
     vendor: 供應商
     wholesaler_refresh: 取批發商更新. 這可能需要幾分鐘.
+    drop_files_here: Drop files here or click to upload.
+    drop_files_only_csv: (Only .csv in the salor format accepted)
   when_list:
     add_to_order: 加入訂單
     always: 總是
+    change_quantity: on change quantity
     on_export: 在出口
     on_import: 在進口
     on_save: 在儲存
     on_sku_not_found: on sku not found
-    change_quantity: on change quantity

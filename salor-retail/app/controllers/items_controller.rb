@@ -13,16 +13,21 @@ class ItemsController < ApplicationController
   def index
     orderby = "id DESC"
     orderby ||= params[:order_by]
-    unless params[:keywords].blank?
-      # search function should display recursive items
-      @items = @current_vendor.items.by_keywords(params[:keywords]).visible.where("items.sku NOT LIKE 'DMY%'")
+    
+    if params[:keywords] and params[:keywords].blank?
+      # user has cleared the field
+      @keywords = session[:keywords] = nil
+    elsif not params[:keywords].blank?
+      @keywords = session[:keywords] = params[:keywords]
+    elsif not session[:keywords].blank?
+      @keywords = session[:keywords]
+    end
+    
+    if @keywords
+      @items = @current_vendor.items.by_keywords(@keywords).visible.where("items.sku NOT LIKE 'DMY%'")
       child_item_skus = []
       log_action "XXXXX[recursive find]: @items #{ @items.collect{ |i| i.sku } }"
       @items.each do |i|
-#         if i.parent.nil? and i.child.nil?
-#           child_item_skus << i.sku
-#           next
-#         end
         log_action "XXXXX[recursive find]: finding upmost parent for Item id #{ i.id }"
         upmost_parent_sku = i.recursive_parent_sku_chain.last
         log_action "XXXXX[recursive find]: upmost parent sku is #{ upmost_parent_sku }"
@@ -61,9 +66,14 @@ class ItemsController < ApplicationController
 
   def edit
     @item = @current_vendor.items.visible.where(["id = ? or sku = ?",params[:id],params[:keywords]]).first
-    @histories = @item.histories.order("created_at DESC").limit(20)
-    #@item.item_stocks.build if not @item.item_stocks.any?
-    #@item.item_shippers.build if not @item.item_shippers.any?
+    if @item
+      @histories = @item.histories.order("created_at DESC").limit(20)
+      #@item.item_stocks.build if not @item.item_stocks.any?
+      #@item.item_shippers.build if not @item.item_shippers.any?
+    else
+      $MESSAGES[:notices] << "Not found"
+      redirect_to items_path
+    end
   end
 
 
@@ -101,8 +111,9 @@ class ItemsController < ApplicationController
   def update
     @item = @current_vendor.items.visible.find_by_id(params[:id])
     params[:item][:currency] = @current_vendor.currency
-    if @item.update_attributes(params[:item])
-      
+    
+    @item.attributes = params[:item]
+    if @item.save == true
       @item.assign_parts(params[:part_skus])
       @item.item_stocks.update_all :vendor_id => @item.vendor_id, :company_id => @item.company_id
       @item.item_shippers.update_all :vendor_id => @item.vendor_id, :company_id => @item.company_id
@@ -116,28 +127,6 @@ class ItemsController < ApplicationController
   
   def gift_cards
     @gift_cards_sold = @current_vendor.order_items.visible.where(:behavior => "gift_card", :activated => nil, :paid => true)
-  end
-  
-  def update_real_quantity
-    @item = @current_vendor.items.visible.find_by_sku(params[:sku])
-    @item.real_quantity = params[:real_quantity]
-    @item.real_quantity ||= 0 # protect against errenous JS requests with missing 'real_quantity' param
-    @item.real_quantity_updated = true
-    result = @item.save
-    if result != true
-      raise "Could not save Item because #{ @item.errors.messages }"
-    end
-    render :json => {:status => 'success'}
-  end
-  
-  def inventory_json
-    @item = @current_vendor.items.visible.find_by_sku(params[:sku], :select => "name,sku,id,quantity")
-    render :json => @item.to_json
-  end
-  
-  def create_inventory_report
-    @current_vendor.create_inventory_report
-    redirect_to inventory_reports_path
   end
 
   def destroy
@@ -158,6 +147,7 @@ class ItemsController < ApplicationController
     @items = []
     @customers = []
     @orders = []
+    
     if params[:klass] == 'Item' then
       if params[:keywords].empty? then
         @items = @current_vendor.items.visible.page(params[:page]).per(@current_vendor.pagination)
@@ -208,10 +198,17 @@ class ItemsController < ApplicationController
   end
 
   def upload
-    if params[:file]
-      @uploader = FileUpload.new("salorretail", @current_vendor, params[:file].read)
-      @uploader.crunch
+    if params[:file] and params[:file].content_type == "text/csv" then
+      shipper = Shipper.new( :name => "Salor")
+      shipper.vendor = @current_vendor
+      shipper.company = @current_company
+
+      if shipper then
+        @uploader = FileUpload.new(shipper, params[:file].read)
+        @uploader.salor(true) #i.e. trusted
+      end
     end
+    render :text => "Done", :status => 200 and return
   end
   
   def download

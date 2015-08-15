@@ -3,6 +3,7 @@ fr:
   activerecord:
     errors:
       messages:
+        dont_use_weird_skus: XXX Only Aa-Zz and 0-9 are permitted in the SKU field
         accepted: doit être accepté
         blank: ne doit pas être vide
         confirmation: ne correspond pas
@@ -22,6 +23,7 @@ fr:
         too_long: est trop long (maximum %{count} characters)
         too_short: est trop court (minimum %{count} characters)
         wrong_length: longueur erronée (should be %{count} characters)
+        record_invalid: xxx
       template:
         body: ! 'Vérifiez les points suivants:'
         header:
@@ -77,9 +79,9 @@ fr:
     - Novembre
     - Décembre
     order:
-    - :année
-    - :mois
-    - :jour
+    - :year
+    - :month
+    - :day
   datetime:
     distance_in_words:
       about_x_hours:

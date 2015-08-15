@@ -166,6 +166,7 @@ it:
         quantity: quantità
         sku: SKU
         stock_location_id: Posizione Stock
+      shipper_name: Shipper
       shipper_sku: Spedizioniere SKU
       sku: SKU
       start_amount: importo di partenza
@@ -216,7 +217,6 @@ it:
       when: quando
       whento: When
       width: larghezza
-      shipper_name: Shipper
     models:
       action:
         one: Azione
@@ -372,6 +372,7 @@ it:
     update_location: aggiorna posizione
     update_real_quantity: aggiorna quantità reale
     users: users
+    action_apply_to_area: Apply this action to
   helpers:
     select:
       prompt: prego selezionare
@@ -421,12 +422,16 @@ it:
         è di 20 minuti. Sei veramente sicuro di procedere?
       report: Report
     inventory_report:
+      add_quantity: add quantity
+      current_quantity: Current quantity
       no_category: No Category
       price: Prezzo di vendita
       subtotal_purchase_price: Subtotale Prezzo di Acquisto
       subtotal_selling_price: Subtotale Prezzo di Vendita
+      sum_purchase_price: Sum Purchase Price
+      sum_selling_price: Sum Selling Price
       title: Rapporto Inventario
-      total_buying_price: Somma Prezzo di Acquisto
+      total_purchase_price: Total Purchase Price
       total_selling_price: Somma Prezzo di Vendita
     selection:
       print: Print
@@ -494,6 +499,7 @@ it:
     end_day: fine giornata
     enter_inventory_items: Enter
     general_configuration: configurazione generale
+    gift_cards: Gift Cards
     home: principale
     inventory_report: Rapporto inventario
     invoice_blurbs: Invoice Blurbs
@@ -729,6 +735,7 @@ it:
     cashier: cassiere
     manager: manager
     stockboy: stockboy
+  sales_statistics: Sale Statistics
   shipments:
     index:
       report: Rapporto
@@ -748,12 +755,19 @@ it:
         creare manualmente un inizio liquidazione cassa del giorno
       cannot_edit_completed_order: Questo ordine è comleto e non può essere modificato.
       cannot_reorder: Nessun articolo da riordinare.
+      cannot_set_negative_price: Setting negative prices is not allowed. Please switch
+        to buyback mode and enter a positive price.
       child_sku_must_exist: Articolo Figlio deve esistere!
       coupon_cannot_be_buy_one_get_one: buono-sconto %{sku} non può essere un compra
         uno prendi uno quando applicato a %{applies}
       coupon_not_enough_items: Non hai comprato abbastanza articoli per procedere
       csv_item_exists: Articolo %{sku} esistente!
       csv_item_failed: ! '%{id} %{i} fallito.'
+      deletion_of_item_when_order_completed: This order has already been completed
+        at a differnt location. Please click the "New" button to start a new order.
+      dont_use_negative_prices: Prices cannot be negative. Use positive buyback price
+        instead.
+      dont_use_weird_skus: Only Aa-Zz and 0-9 are permitted in the SKU field
       failed_to_save_parts: Konnte das Set nicht speichern. Bitte stellen Sie sicher,
         dass Set-Items existieren.
       gift_card_empty: Carta Regalo è Vuota, contattare il cliente e distruggere la
@@ -799,6 +813,7 @@ it:
       shipment_item_nil: Item returned from_shipment_item was nil?
       sku_must_be_unique: ! '%{sku} must be unique'
       value_not_set: NotSet
+    finish_day: End of day
     inventory_updated: inventario aggiornato
     logged_in_as: autenticato come
     login: registrati
@@ -854,12 +869,21 @@ it:
       transaction_tag: transaction tag
       transaction_total: transaction total
       transactions: transactions
+    sales_statistics:
+      category: Category
+      from: From
+      item_name: Item name
+      quantity: Quantity
+      sum: Sum
+      title: Sales Statistics
+      to: To
   views:
     advanced_field: campo avanzato
     cash_register_heading: ! '%{name} for %{store}'
     cash_registers: registri di cassa
     category_heading: categoria %{name} per %{store}
     change: cambio
+    copies: Copies
     create_new_item: Create New Article
     customers: clienti
     download_may_last_long: Questo download può durare a lungo. Continuare?
@@ -910,6 +934,14 @@ it:
     notice:
       cache_was_cleared: Documenti in cache cancellati.
       csv_edit_starting: inizio modifica csv
+      delete_completed_order: This order is already completed. Cannot delete.
+      edit_completed_order: This order is already completed. Cannot edit it.
+      edit_order_by_other_user: This order is currently edited by user %{username}.
+        Cannot open it. User %{username} must click on the 'New' button, then try
+        again.
+      item_not_existing: This item did not exist. It has been created and the price
+        set to zero. You can change the price and it will be saved permanently in
+        the database.
       model_create: ! '%{model} è stato creato con successo'
       model_edit: ! '%{model} è stato modificato con successo'
       move_real_quantities_success: Quantità articoli aggiornate con successo
@@ -965,6 +997,7 @@ it:
       to: a
       top: alto
       waiting: in attesa...
+      xor: OR
     sticky_ticket: Etichetta adesiva
     stock_locations: stock_posizioni
     subtotal: subtotale
@@ -974,11 +1007,13 @@ it:
     username: nome utente
     vendor: venditore
     wholesaler_refresh: Recupero aggiornamenti fornitori. Può richiedere diversi minuti.
+    drop_files_here: Drop files here or click to upload.
+    drop_files_only_csv: (Only .csv in the salor format accepted)
   when_list:
     add_to_order: aggiungo ad ordine
     always: sempre
+    change_quantity: on change quantity
     on_export: esportazione
     on_import: importazione
     on_save: salvataggio
     on_sku_not_found: on sku not found
-    change_quantity: on change quantity

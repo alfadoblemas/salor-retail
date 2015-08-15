@@ -164,27 +164,6 @@ class Order < ActiveRecord::Base
   def net
     return self.total - self.tax_amount
   end
-  
-#   def skus=(list)
-#     list.each do |s|
-#       if s.class == Array then
-#         qty = s[1]
-#         s = s[0]
-#       end
-#       item = Item.get_by_code(s)
-#       if item then
-#         if item.class == LoyaltyCard then
-#           self.customer = item
-#         else
-#           oi = self.add_item(item)
-#           if qty then
-#             oi.quantity = qty
-#           end
-#         end
-#       end #if item
-#     end # end list.each
-#   end
-
 
   def add_order_item(params={})
     return nil if params[:sku].blank?
@@ -194,7 +173,6 @@ class Order < ActiveRecord::Base
     if self.completed_at then
       log_action "Order is completed already, cannot add items to it #{self.completed_at}"
     end
-    
     
     # get existing regular item
     oi = self.order_items.visible.where(:no_inc => nil, :sku => params[:sku]).first
@@ -241,9 +219,14 @@ class Order < ActiveRecord::Base
     if params[:sku].include?('.') or params[:sku].include?(',')
       log_action "Setting no_inc since it is a price-only item."
       oi.no_inc = true
+      if params[:sku][0] == '-' then
+        #it's a negative price item, so set buyback
+        oi.is_buyback = true
+      end
     end
     oi.no_inc ||= params[:no_inc]
     log_action "no_inc is: #{oi.no_inc.inspect}"
+
     oi.save! # this is needed so that Action has the complete set of OrderItems taken from oi.order
     redraw_all_order_items = oi.modify_price
     oi.calculate_totals
@@ -301,13 +284,8 @@ class Order < ActiveRecord::Base
       item.save!
     end
   end
-  
 
-  
-  
-  
   def get_item_by_sku(sku)
-    
     item = self.vendor.items.visible.find_by_sku(sku)
     return item if item # a sku was entered
 
@@ -320,11 +298,11 @@ class Order < ActiveRecord::Base
     
     # if nothing existing has been found, create a new item
     i = Item.new
+    i.vendor = self.vendor
+    i.company = self.company
     i.item_type = self.vendor.item_types.find_by_behavior('normal')
     i.behavior = i.item_type.behavior
     i.tax_profile = self.vendor.tax_profiles.visible.where(:default => true).first
-    i.vendor = self.vendor
-    i.company = self.company
     i.currency = self.vendor.currency
     i.created_by = -100 # magic number for created by POS screen
     i.name = sku
@@ -334,11 +312,16 @@ class Order < ActiveRecord::Base
       timestamp = Time.now.strftime("%y%m%d%H%M%S%L")
       i.sku = "DMY" + timestamp
       i.price_cents = self.string_to_float(pm[1], :locale => self.vendor.region) * 100
+      if sku[0] == '-' then
+        #it's a negative price item, so set buyback
+        i.buy_price_cents = self.string_to_float(pm[1], :locale => self.vendor.region) * 100
+        i.tax_profile = self.vendor.tax_profiles.visible.where(:value => 0).first
+      end
     else
-      $MESSAGES[:prompts] << I18n.t("views.notice.item_not_existing")
-      # we didn't find the item, let's see if a plugin wants to handle it
+      # $MESSAGES[:prompts] << I18n.t("views.notice.item_not_existing")
       i.sku = sku
       i.price_cents = 0
+      # we didn't find the item, let's see if a plugin wants to handle it
       #Action.run(i.vendor, i, :on_sku_not_found) 
     end
     log_action "Will create item #{ i.sku } because not found"
@@ -410,11 +393,6 @@ class Order < ActiveRecord::Base
       raise "Order Could Not Be Saved #{ self.errors.messages }"
     end
   end
-
-
-
-
-  
 
   def complete(params={})
     raise "cannot complete a paid order" if self.paid
@@ -543,8 +521,8 @@ class Order < ActiveRecord::Base
       self.payment_method_items << pmi
       
       # this is now done in update_associations
-#       self.is_quote = true if pm.quote == true
-#       self.is_unpaid = true if pm.unpaid == true
+      #       self.is_quote = true if pm.quote == true
+      #       self.is_unpaid = true if pm.unpaid == true
     end
     
     self.save!
@@ -634,13 +612,26 @@ class Order < ActiveRecord::Base
     tax_format = "   %s: %2i%% %7.2f %7.2f %8.2f\n"
 
     self.order_items.visible.each do |oi|
-      if oi.item
-        name = oi.item.get_translated_name(locale)
-      else
-        # fix for orders where the item was deleted (compatibility with old system)
-        name = ''
-      end
+      it = oi.item
+      name = it.get_translated_name(locale)
       taxletter = oi.tax_profile.letter
+      
+      oi_price = oi.price
+      oi_quantity = oi.quantity
+      
+      if ["GR", "DG"].include? it.sales_metric
+        # this is just for display purposes on customer screen and receipt
+        # oi.price and oi.item.price is always per KG
+        if it.sales_metric == "GR"
+          factor = 1000
+        elsif it.sales_metric == "DG"
+          factor = 10
+        end
+        oi_price /= factor
+        oi_quantity *= factor
+        name += " #{ it.sales_metric }"
+      end
+      
       
 
       # --- NORMAL ITEMS ---
@@ -650,15 +641,15 @@ class Order < ActiveRecord::Base
           list_of_items += integer_format % [
             taxletter,
             name,
-            oi.price,
-            oi.quantity,
+            oi_price,
+            oi_quantity,
             oi.total
           ]
           list_of_items_raw << to_list_of_items_raw([
                                                      taxletter,
                                                      name,
-                                                     oi.price,
-                                                     oi.quantity,
+                                                     oi_price,
+                                                     oi_quantity,
                                                      oi.total,
                                                      'integer'
                                                     ])
@@ -667,15 +658,15 @@ class Order < ActiveRecord::Base
           list_of_items += float_format % [
             taxletter,
             name,
-            oi.price,
-            oi.quantity,
+            oi_price,
+            oi_quantity,
             oi.total
           ]
           list_of_items_raw << to_list_of_items_raw([
                                                      taxletter,
                                                      name,
-                                                     oi.price,
-                                                     oi.quantity,
+                                                     oi_price,
+                                                     oi_quantity,
                                                      oi.total,
                                                      'float'
                                                     ])
@@ -887,23 +878,6 @@ class Order < ActiveRecord::Base
     }
     return report
   end
-  
- 
-  
-#   def inspectify
-#     txt = "Order[#{self.id}]"
-#     [:total,:subtotal,:tax,:gross].each do |f|
-#        txt += " #{f}=#{self.send(f)}"
-#     end
-#     self.order_items.each do |oi|
-#       txt += "\n\tOrderItem[#{oi.id}]"
-#       [:quantity,:price,:total,:gift_card_amount,:activated].each do |f|
-#         txt += " #{f}=#{oi.send(f)}"
-#       end
-#     end
-#     return txt
-#   end
-  
   
   def escpos_receipt
     report = self.report
@@ -1147,7 +1121,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.user_id]
-    actual = self.order_items.visible.collect{ |oi| oi.user_id }.uniq
+    actual = self.order_items.collect{ |oi| oi.user_id }.uniq
     pass = should == actual
     msg = "OrderItems should have the same user_id as the Order"
     type = :orderOrderItemsUserMatch
@@ -1155,7 +1129,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.user_id]
-    actual = self.payment_method_items.visible.collect{ |pmi| pmi.user_id }.uniq
+    actual = self.payment_method_items.collect{ |pmi| pmi.user_id }.uniq
     pass = should == actual
     msg = "PaymentMethodItems should have the same user_id as the Order"
     type = :orderPaymentMethodItemUserMatch
@@ -1164,7 +1138,7 @@ class Order < ActiveRecord::Base
     # ---
     if self.drawer_transactions.any?
       should = [self.user_id]
-      actual = self.drawer_transactions.visible.collect{ |dt| dt.user_id }.uniq
+      actual = self.drawer_transactions.collect{ |dt| dt.user_id }.uniq
       pass = should == actual
       msg = "DrawerTransactions should have the same user_id as the Order"
       type = :orderDrawerTransactionUserMatch
@@ -1176,7 +1150,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.drawer_id]
-    actual = self.order_items.visible.collect{ |oi| oi.drawer_id }.uniq
+    actual = self.order_items.collect{ |oi| oi.drawer_id }.uniq
     pass = should == actual
     msg = "OrderItems should have the same drawer_id as the Order"
     type = :orderOrderItemsDrawerMatch
@@ -1184,7 +1158,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.drawer_id]
-    actual = self.payment_method_items.visible.collect{ |pmi| pmi.drawer_id }.uniq
+    actual = self.payment_method_items.collect{ |pmi| pmi.drawer_id }.uniq
     pass = should == actual
     msg = "PaymentMethodItems should have the same drawer_id as the Order"
     type = :orderPaymentMethodItemDrawerMatch
@@ -1193,7 +1167,7 @@ class Order < ActiveRecord::Base
     # ---
     if self.drawer_transactions.any?
       should = [self.drawer_id]
-      actual = self.drawer_transactions.visible.collect{ |dt| dt.drawer_id }.uniq
+      actual = self.drawer_transactions.collect{ |dt| dt.drawer_id }.uniq
       pass = should == actual
       msg = "DrawerTransactions should have the same drawer_id as the Order"
       type = :orderDrawerTransactionDrawerMatch
@@ -1205,7 +1179,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.paid]
-    actual = self.order_items.visible.collect{ |oi| oi.paid }.uniq
+    actual = self.order_items.collect{ |oi| oi.paid }.uniq
     pass = should == actual
     msg = "OrderItems should have the same paid flag as the Order"
     type = :orderOrderItemsPaidMatch
@@ -1213,7 +1187,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.paid]
-    actual = self.payment_method_items.visible.collect{ |pmi| pmi.paid }.uniq
+    actual = self.payment_method_items.collect{ |pmi| pmi.paid }.uniq
     pass = should == actual
     msg = "PaymentMethodItems should have the same paid flag as the Order"
     type = :orderPaymentMethodItemsPaidMatch
@@ -1224,7 +1198,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.is_proforma]
-    actual = self.order_items.visible.collect{ |oi| oi.is_proforma }.uniq
+    actual = self.order_items.collect{ |oi| oi.is_proforma }.uniq
     pass = should == actual
     msg = "OrderItems should have the same is_proforma flag as the Order"
     type = :orderOrderItemsProformaMatch
@@ -1232,7 +1206,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.is_proforma]
-    actual = self.payment_method_items.visible.collect{ |pmi| pmi.is_proforma }.uniq
+    actual = self.payment_method_items.collect{ |pmi| pmi.is_proforma }.uniq
     pass = should == actual
     msg = "PaymentMethodItems should have the same is_proforma flag as the Order"
     type = :orderPaymentMethodItemsProformaMatch
@@ -1243,7 +1217,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.is_unpaid]
-    actual = self.order_items.visible.collect{ |oi| oi.is_unpaid }.uniq
+    actual = self.order_items.collect{ |oi| oi.is_unpaid }.uniq
     pass = should == actual
     msg = "OrderItems should have the same is_unpaid flag as the Order"
     type = :orderOrderItemsUnpaidMatch
@@ -1251,7 +1225,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.is_unpaid]
-    actual = self.payment_method_items.visible.collect{ |pmi| pmi.is_unpaid }.uniq
+    actual = self.payment_method_items.collect{ |pmi| pmi.is_unpaid }.uniq
     pass = should == actual
     msg = "PaymentMethodItems should have the same is_unpaid flag as the Order"
     type = :orderPaymentMethodItemsUnpaidMatch
@@ -1261,14 +1235,14 @@ class Order < ActiveRecord::Base
     # checks for completed_at timestamp
     
     should = [self.completed_at.strftime("%Y%m%d%H%M%S")]
-    actual = self.order_items.visible.collect{ |oi| oi.completed_at.strftime("%Y%m%d%H%M%S") }.uniq
+    actual = self.order_items.collect{ |oi| oi.completed_at.strftime("%Y%m%d%H%M%S") }.uniq
     pass = should == actual
     msg = "OrderItems should have the same completed_at timestamp as the Order"
     type = :orderOrderItemsCompletedAtMatch
     tests << {:model=>"Order", :id=>self.id, :t=>type, :m=>msg, :s=>should, :a=>actual} if pass == false
     
     should = [self.completed_at.strftime("%Y%m%d%H%M%S")]
-    actual = self.payment_method_items.visible.collect{ |pmi| pmi.completed_at.strftime("%Y%m%d%H%M%S") }.uniq
+    actual = self.payment_method_items.collect{ |pmi| pmi.completed_at.strftime("%Y%m%d%H%M%S") }.uniq
     pass = should == actual
     msg = "PaymentMethodItems should have the same completed_at timestamp as the Order"
     type = :orderPaymentMethodItemsCompletedAtMatch
@@ -1279,14 +1253,14 @@ class Order < ActiveRecord::Base
     
     unless self.paid_at.nil?
       should = [self.paid_at.strftime("%Y%m%d%H%M%S")]
-      actual = self.order_items.visible.collect{ |oi| oi.paid_at.strftime("%Y%m%d%H%M%S") }.uniq
+      actual = self.order_items.collect{ |oi| oi.paid_at.strftime("%Y%m%d%H%M%S") }.uniq
       pass = should == actual
       msg = "OrderItems should have the same paid_at timestamp as the Order"
       type = :orderOrderItemsPaidAtMatch
       tests << {:model=>"Order", :id=>self.id, :t=>type, :m=>msg, :s=>should, :a=>actual} if pass == false
       
       should = [self.paid_at.strftime("%Y%m%d%H%M%S")]
-      actual = self.payment_method_items.visible.collect{ |pmi| pmi.paid_at.strftime("%Y%m%d%H%M%S") }.uniq
+      actual = self.payment_method_items.collect{ |pmi| pmi.paid_at.strftime("%Y%m%d%H%M%S") }.uniq
       pass = should == actual
       msg = "PaymentMethodItems should have the same paid_at timestamp as the Order"
       type = :orderPaymentMethodItemsPaidAtMatch
@@ -1298,7 +1272,7 @@ class Order < ActiveRecord::Base
     
     # ---
     should = [self.is_quote]
-    actual = self.order_items.visible.collect{ |oi| oi.is_quote }.uniq
+    actual = self.order_items.collect{ |oi| oi.is_quote }.uniq
     pass = should == actual
     msg = "OrderItems should have the same is_quote flag as the Order"
     type = :orderOrderItemsQuoteMatch
@@ -1329,7 +1303,7 @@ class Order < ActiveRecord::Base
   # for better debugging in the console
   def self.last2
     id = Order.last.id
-    return Order.find_by_id id-1   
+    return Order.find_by_id id-1
   end
   
   def to_json

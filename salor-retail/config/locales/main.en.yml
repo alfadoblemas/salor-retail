@@ -47,7 +47,7 @@ en:
       created_at: Created
       csv_imports: CSV Imports
       csv_imports_url: CSV Imports URL
-      currency: Währung
+      currency: Currency
       customer:
         tax_number: Tax number
       customer_name: Customer
@@ -100,7 +100,7 @@ en:
         weight: Weight
       item_sku: item sku
       itemsviewlist: List View for Items
-      js_code: Javascript Code
+      js_code: V8 Javascript Code
       lang: Language
       language: Language
       last_name: last name
@@ -111,7 +111,7 @@ en:
       lp_per_dollar: loyalty points per dollar
       min_quantity: min quantity
       must_change_price: Change price on scan
-      name: name
+      name: Name
       no_print: Don't Print on Enter
       notes: notes
       nr: Number
@@ -346,6 +346,7 @@ en:
     exception_in_files: ! 'The Error occurred in the following files:'
     oops_an_error_occurred: Oops! An Error occurred
   headings:
+    action_apply_to_area: Apply this action to
     almost_out: almost out
     bank_machine_types: supported bank machines
     best_sellers: bestsellers
@@ -421,13 +422,17 @@ en:
         you really sure that you want to proceed?
       report: Barcode Sheet
     inventory_report:
+      add_quantity: add quantity
+      current_quantity: Current quantity
       no_category: No Category
       price: Selling price
       subtotal_purchase_price: Subtotal Purchase Price
       subtotal_selling_price: Subtotal Selling Price
+      sum_purchase_price: Sum Purchase Price
+      sum_selling_price: Sum Selling Price
       title: Inventory Report
-      total_buying_price: Sum Purchase Price
-      total_selling_price: Sum Selling Price
+      total_purchase_price: Total Purchase Price
+      total_selling_price: Total Selling Price
     selection:
       print: Print
     show:
@@ -444,7 +449,6 @@ en:
       upload: upload
   label: label
   menu:
-    gift_cards: Gift Cards
     actions: actions
     activate_gift_card: activate gift card
     add_to_current_order: add to current order
@@ -495,6 +499,7 @@ en:
     end_day: end day
     enter_inventory_items: Enter
     general_configuration: general configuration
+    gift_cards: Gift Cards
     home: home
     inventory_report: Inventory report
     invoice_blurbs: Invoice Blurbs
@@ -731,6 +736,7 @@ en:
     cashier: cashier
     manager: manager
     stockboy: stockboy
+  sales_statistics: Sale Statistics
   shipments:
     index:
       report: Report
@@ -750,12 +756,19 @@ en:
         of day cash drop
       cannot_edit_completed_order: That order is completed and cannot be modified.
       cannot_reorder: No items must be reordered.
+      cannot_set_negative_price: Setting negative prices is not allowed. Please switch
+        to buyback mode and enter a positive price.
       child_sku_must_exist: Child Item Must Exist!
       coupon_cannot_be_buy_one_get_one: coupon %{sku} cannot be_buy_one_get_one when
         applied to %{applies}
       coupon_not_enough_items: You have not purchased enough items for this to apply
       csv_item_exists: Item %{sku} exists!
       csv_item_failed: ! '%{id} %{i} failed.'
+      deletion_of_item_when_order_completed: This order has already been completed
+        at a differnt location. Please click the "New" button to start a new order.
+      dont_use_negative_prices: Prices cannot be negative. Use positive buyback price
+        instead.
+      dont_use_weird_skus: Only A-Z, a-z, 0-9 and - are permitted in the SKU field
       failed_to_save_parts: Konnte das Set nicht speichern. Bitte stellen Sie sicher,
         dass Set-Items existieren.
       gift_card_empty: Gift Card is Empty, notify client, and destroy card.
@@ -798,6 +811,7 @@ en:
       shipment_item_nil: Item returned from_shipment_item was nil?
       sku_must_be_unique: ! '%{sku} must be unique'
       value_not_set: NotSet
+    finish_day: End of day
     inventory_updated: inventory updated
     logged_in_as: logged in as
     login: Clockin
@@ -853,15 +867,26 @@ en:
       transaction_tag: transaction tag
       transaction_total: transaction total
       transactions: transactions
+    sales_statistics:
+      category: Category
+      from: From
+      item_name: Item name
+      quantity: Quantity
+      sum: Sum
+      title: Sales Statistics
+      to: To
   views:
     advanced_field: advanced field
     cash_register_heading: ! '%{name} for %{store}'
     cash_registers: cash registers
     category_heading: category %{name} for %{store}
     change: Change
+    copies: Copies
     create_new_item: Create New Article
     customers: customers
     download_may_last_long: This download may last long. Continue?
+    drop_files_here: Drop files here or click to upload.
+    drop_files_only_csv: (Only .csv in the salor format accepted)
     dummy_item: dummy item
     edit_item_heading: Edititem heading
     email: email
@@ -907,17 +932,21 @@ en:
     new_item_heading: New item for %{store}
     new_stock_location: New stock location
     notice:
-      edit_order_by_other_user: This order is currently edited by user %{username}. Cannot open it. User %{username} must click on the 'New' button, then try again.
-      delete_completed_order: This order is already completed. Cannot delete.
-      edit_completed_order: This order is already completed. Cannot edit it.
-      item_not_existing: This item did not exist. It has been created and the price set to zero. You can change the price and it will be saved permanently in the database.
       cache_was_cleared: Cache files deleted.
       csv_edit_starting: csv edit starting
+      delete_completed_order: This order is already completed. Cannot delete.
+      edit_completed_order: This order is already completed. Cannot edit it.
+      edit_order_by_other_user: This order is currently edited by user %{username}.
+        Cannot open it. User %{username} must click on the 'New' button, then try
+        again.
+      item_not_existing: This item did not exist. It has been created and the price
+        set to zero. You can change the price and it will be saved permanently in
+        the database.
       model_create: ! '%{model} was created successfully'
       model_edit: ! '%{model} was edited successfully'
       move_real_quantities_success: Item quantities were successfully updated
       new_order: New order created
-      order_refund_dt: ! '#%{id}'
+      order_refund_dt: ! '%{name}, %{sku}, Verkauf Nr. %{id}'
       please_backup: Please backup your system regularly!
       save_before: Save before leaving?
       wholesaler_upload_report: ! 'Updated items: %{updated_items}, Created items:
@@ -969,6 +998,7 @@ en:
       to: to
       top: top
       waiting: waiting...
+      xor: OR
     sticky_ticket: Sticky label
     stock_locations: stock_locations
     subtotal: subtotal

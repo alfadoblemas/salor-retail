@@ -166,6 +166,7 @@ fi:
         quantity: määrä
         sku: SKU
         stock_location_id: Varaston sijaintipaikka
+      shipper_name: Shipper
       shipper_sku: Toimittajan SKU
       sku: SKU
       start_amount: alkumäärä
@@ -216,7 +217,6 @@ fi:
       when: milloin
       whento: milloin
       width: leveys
-      shipper_name: Shipper
     models:
       action:
         one: Toiminta
@@ -372,6 +372,7 @@ fi:
     update_location: päivitä sijaintipaikka
     update_real_quantity: päivitä todellinen määrä
     users: käyttäjät
+    action_apply_to_area: Apply this action to
   helpers:
     select:
       prompt: Valitse
@@ -421,12 +422,16 @@ fi:
         jatkaa?
       report: Raportti
     inventory_report:
+      add_quantity: add quantity
+      current_quantity: Current quantity
       no_category: Ei kategoriaa
       price: Myyntihinta
       subtotal_purchase_price: Ostohinnan välisumma
       subtotal_selling_price: Myyntihinnan välisumma
+      sum_purchase_price: Sum Purchase Price
+      sum_selling_price: Sum Selling Price
       title: Inventaarioraportti
-      total_buying_price: Ostohinnan loppusumma
+      total_purchase_price: Total Purchase Price
       total_selling_price: Myyntihinnan loppusumma
     selection:
       print: Tulosta
@@ -494,6 +499,7 @@ fi:
     end_day: lopeta päivä
     enter_inventory_items: Syötä
     general_configuration: yleismääritys
+    gift_cards: Gift Cards
     home: alku
     inventory_report: Inventaarioraportti
     invoice_blurbs: Laskun mainokset
@@ -730,6 +736,7 @@ fi:
     cashier: kassa
     manager: päällikkö
     stockboy: varastotyöntekijä
+  sales_statistics: Sale Statistics
   shipments:
     index:
       report: Raportti
@@ -749,12 +756,19 @@ fi:
         alkaessa manuaalisesti.
       cannot_edit_completed_order: Tilaus on suoritettu eikä sitä voi muuttaa.
       cannot_reorder: Mitään nimikettä ei tarvitse tilata uudestaan.
+      cannot_set_negative_price: Setting negative prices is not allowed. Please switch
+        to buyback mode and enter a positive price.
       child_sku_must_exist: tytärnimike pakko olla!
       coupon_cannot_be_buy_one_get_one: kuponki %{sku} osta_yksi_saat_kaksi ei koske
         %{applies}
       coupon_not_enough_items: Et ole ostanut tarpeeksi nimikkeitä tämän soveltamiseksi
       csv_item_exists: Nimike %{sku} on jo olemassa!
       csv_item_failed: ! '%{id} %{i} epäonnistui.'
+      deletion_of_item_when_order_completed: This order has already been completed
+        at a differnt location. Please click the "New" button to start a new order.
+      dont_use_negative_prices: Prices cannot be negative. Use positive buyback price
+        instead.
+      dont_use_weird_skus: Only Aa-Zz and 0-9 are permitted in the SKU field
       failed_to_save_parts: Tietoa ei voitu tallentaa. Varmista että nimikkeiden ryhmä
         on olemassa.
       gift_card_empty: Lahjakortti on tyhjä, ilmoita asiakkaalle ja tuhoa kortti.
@@ -799,6 +813,7 @@ fi:
       shipment_item_nil: Nimike palautettu lähetyksestä oli nolla?
       sku_must_be_unique: ! '%{sku}  on oltava yksilöllinen'
       value_not_set: ei ole asetettu
+    finish_day: End of day
     inventory_updated: varasto päivitetty
     logged_in_as: kirjauttu nimella
     login: Kirjaudu sisään
@@ -854,12 +869,21 @@ fi:
       transaction_tag: liiketoimitunniste
       transaction_total: liiketoimen loppusumma
       transactions: liiketoimet
+    sales_statistics:
+      category: Category
+      from: From
+      item_name: Item name
+      quantity: Quantity
+      sum: Sum
+      title: Sales Statistics
+      to: To
   views:
     advanced_field: kehittynyt kenttä
     cash_register_heading: ! '%{name} %{store}: lle'
     cash_registers: kassat
     category_heading: Kategoria %{name} %{store}:lle
     change: vaihtoraha
+    copies: Copies
     create_new_item: Luo uusi artikkeli
     customers: asiakkaat
     download_may_last_long: Tämä lataus saattaa kestää kauan. Jatkatko?
@@ -910,6 +934,14 @@ fi:
     notice:
       cache_was_cleared: Välimuistitiedostot on poistettu.
       csv_edit_starting: cvs-muokkaus alkaa
+      delete_completed_order: This order is already completed. Cannot delete.
+      edit_completed_order: This order is already completed. Cannot edit it.
+      edit_order_by_other_user: This order is currently edited by user %{username}.
+        Cannot open it. User %{username} must click on the 'New' button, then try
+        again.
+      item_not_existing: This item did not exist. It has been created and the price
+        set to zero. You can change the price and it will be saved permanently in
+        the database.
       model_create: ! '%{model} luonti onnistui'
       model_edit: ! '%{model} muokkaaminen onnistui'
       move_real_quantities_success: Nimikkeiden määrien päivittäminen onnistui
@@ -965,6 +997,7 @@ fi:
       to: asti
       top: yläosa
       waiting: odottaa...
+      xor: OR
     sticky_ticket: Tarra
     stock_locations: varastojen sijaintipaikat
     subtotal: välisumma
@@ -974,11 +1007,13 @@ fi:
     username: käyttäjätunnus
     vendor: myyntipiste
     wholesaler_refresh: Haetaan tukkuliikepäivityksiä. Tämä voi kestää useita minuutteja.
+    drop_files_here: Drop files here or click to upload.
+    drop_files_only_csv: (Only .csv in the salor format accepted)
   when_list:
     add_to_order: lisättäessä tilaukseen
     always: aina
+    change_quantity: on change quantity
     on_export: siirtymässä
     on_import: laatamista
     on_save: tallentamassa
     on_sku_not_found: kun sku ei löytynyt
-    change_quantity: on change quantity

@@ -36,23 +36,24 @@ class OrdersController < ApplicationController
     params[:type] ||= 'normal'
     case params[:type]
     when 'normal'
-      @orders = @current_vendor.orders.visible.order("nr desc").where(:paid => true).page(params[:page]).per(@current_vendor.pagination)
+      @orders = @current_vendor.orders.visible.order("nr desc").where(:paid => true).by_keywords(params[:keywords]).page(params[:page]).per(@current_vendor.pagination)
     when 'proforma'
-      @orders = @current_vendor.orders.visible.order("nr desc").where(:is_proforma => true).page(params[:page]).per(@current_vendor.pagination)
+      @orders = @current_vendor.orders.visible.order("nr desc").where(:is_proforma => true).by_keywords(params[:keywords]).page(params[:page]).per(@current_vendor.pagination)
     when 'unpaid'
-      @orders = @current_vendor.orders.visible.order("nr desc").where(:is_unpaid => true).page(params[:page]).per(@current_vendor.pagination)
+      @orders = @current_vendor.orders.visible.order("nr desc").where(:is_unpaid => true).by_keywords(params[:keywords]).page(params[:page]).per(@current_vendor.pagination)
     when 'quote'
-      @orders = @current_vendor.orders.visible.order("qnr desc").where(:is_quote => true).page(params[:page]).per(@current_vendor.pagination)
+      @orders = @current_vendor.orders.visible.order("qnr desc").where(:is_quote => true).by_keywords(params[:keywords]).page(params[:page]).per(@current_vendor.pagination)
     when 'subscription'
-      @orders = @current_vendor.orders.visible.order("created_at DESC").where(:subscription => true).page(params[:page]).per(@current_vendor.pagination)
+      @orders = @current_vendor.orders.visible.order("created_at DESC").where(:subscription => true).by_keywords(params[:keywords]).page(params[:page]).per(@current_vendor.pagination)
     else
-      @orders = @current_vendor.orders.visible.order("id desc").page(params[:page]).per(@current_vendor.pagination)
+      @orders = @current_vendor.orders.visible.order("id desc").by_keywords(params[:keywords]).page(params[:page]).per(@current_vendor.pagination)
     end
   end
 
   def show
-    @order = @current_vendor.orders.visible.find_by_id(params[:id])
-    @histories = @order.histories
+    redirect_to "/orders/#{ params[:id] }/print"
+    #@order = @current_vendor.orders.visible.find_by_id(params[:id])
+    #@histories = @order.histories
   end
 
   def new
@@ -110,7 +111,23 @@ class OrdersController < ApplicationController
 
 
   def add_item_ajax
-    @order = @current_vendor.orders.where(:paid => nil).find_by_id(params[:order_id])
+    @order = @current_vendor.orders.find_by_id(params[:order_id])
+    
+    unless @order.completed_at.nil?
+      # the requested order is already completed. We cannot edit that and rediect to #new.
+      $MESSAGES[:prompts] << I18n.t("views.notice.edit_completed_order")
+      render :update_pos_display
+      return
+    end
+    
+    user_which_has_requested_order = @current_vendor.users.visible.find_by_current_order_id(@order.id)
+    
+    if user_which_has_requested_order and user_which_has_requested_order != @current_user
+      # another user is editing this order. We cannot edit that and redirect to #new.
+      $MESSAGES[:prompts] << I18n.t("views.notice.edit_order_by_other_user", :username => user_which_has_requested_order.username)
+      render :update_pos_display
+      return
+    end
     
     @order_item, redraw_all_order_items = @order.add_order_item(params)
     @order_items = []
@@ -144,10 +161,15 @@ class OrdersController < ApplicationController
 
 
   def delete_order_item
+    @order_items = []
     @order_item = @current_vendor.order_items.find_by_id(params[:id])
     @order = @order_item.order
+    if @order.completed_at
+      $MESSAGES[:prompts] << I18n.t("system.errors.deletion_of_item_when_order_completed")
+      render :update_pos_display
+      return
+    end
     @order_item.hide(@current_user)
-    @order_items = []
     if @order_item.behavior == 'coupon'
       @matching_coupon_item = @order.order_items.visible.find_by_sku(@order_item.item.coupon_applies)
       @order_items << @matching_coupon_item
@@ -269,18 +291,6 @@ class OrdersController < ApplicationController
     redirect_to new_order_path
   end
   
-  def split_order_item
-    @oi = @current_vendor.order_items.visible.find_by_id(params[:id])
-    @oi.split
-    redirect_to request.referer
-  end
-  
-  def refund_item
-    @oi = @current_vendor.order_items.visible.find_by_id(params[:id])
-    @oi.refund(params[:pm], @current_user)
-    redirect_to request.referer
-  end
-  
   def customer_display
     @order = @current_vendor.orders.visible.find_by_id(params[:id])
     @order_items = @order.order_items.visible.order('id ASC')
@@ -307,36 +317,6 @@ class OrdersController < ApplicationController
     view = 'default'
     render "orders/invoices/#{view}/page"
   end
-
-  
-#   def clear
-#     if not @current_user.can(:clear_orders) then
-#       #History.record(:failed_to_clear, @order, 1)
-#       render 'update_pos_display' and return
-#     end
-#     
-#     @order = @current_vendor.orders.where(:paid => nil).find_by_id(params[:order_id])
-#     
-#     if @order then
-#       History.record("Destroying #{@order.order_items.visible.count} OrderItems", @order, 1)
-#       
-#       @order.order_items.visible.each do |oi|
-#         oi.hidden = 1
-#         oi.hidden_by = @current_user.id
-#         oi.save
-#       end
-#       
-#       @order.customer_id = nil
-#       @order.tag = nil
-#       @order.subtotal = 0
-#       @order.total = 0
-#       @order.tax = 0
-#       @order.save
-#     else
-#       History.record("cannot clear order because already paid", @order, 1)
-#     end
-#     render 'update_pos_display' and return
-#   end
   
   def create_all_recurring
     recurrable_orders = @current_vendor.recurrable_subscription_orders

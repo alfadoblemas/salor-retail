@@ -2,6 +2,7 @@ sr.data.pos_core.highlight_attrs = ['sku', 'price', 'total'];
 
 sr.fn.pos_core.addItem = function(sku, additional_params) {
   if (sku == "") return
+  sku = sku.replace(/[^-0-9a-zA-Z,\.]/g,'');
   get('/orders/add_item_ajax?order_id=' + sr.data.pos_core.order.id + '&sku=' + sku + additional_params);
   $('#main_sku_field').val('');
 }
@@ -47,17 +48,17 @@ sr.fn.pos_core.updateOrderItems = function(items) {
 }
 
 sr.fn.pos_core.addPosItem = function(item) {
-  var row_new = sr.fn.pos_core.drawOrderItemRow(item);
+  var row_new = sr.fn.pos_core.drawOrderItemRow(item, "adding" );
   $('.pos-table-left-column-items').prepend(row_new);
 }
 
 sr.fn.pos_core.updatePosItem = function(item) {
   var row_existing = $('#order_item_' + item.id)
-  row_existing.html(sr.fn.pos_core.drawOrderItemRow(item));
+  row_existing.html(sr.fn.pos_core.drawOrderItemRow(item, "updating"));
 }
 
 
-sr.fn.pos_core.drawOrderItemRow = function(item) {
+sr.fn.pos_core.drawOrderItemRow = function(item, mode) {
   if (sr.data.session.cash_register.hide_discounts == true) {
     var attrs = ['name', 'quantity', 'price', 'total'];
   } else {
@@ -86,14 +87,22 @@ sr.fn.pos_core.drawOrderItemRow = function(item) {
         col.html(item.name + '<br/>' + item.sku);
         break;
       case 'quantity':
-        col.html(item.quantity);
+        var string = "";
+        if (Math.round(item.quantity) == item.quantity) {
+          // integer
+          string = item.quantity;
+        } else {
+          // float
+          string = sr.fn.math.toDelimited(item.quantity, 3);
+        }
+        col.html(string);
         break;
       case 'price':
         switch(item.behavior) {
           case 'normal':
             col.html(sr.fn.math.toCurrency(item.price));
             if (item.price == 0) {
-              col.css("background-color", "black");
+              col.css("background-color", "red");
             }
             break;
           case 'aconto':
@@ -249,7 +258,10 @@ sr.fn.pos_core.drawOrderItemRow = function(item) {
 
   } // end loop through attrs
 
-  if(item.weigh_compulsory && item.quantity == 0) {
+  if (item.weigh_compulsory &&
+    item.quantity == 0 &&
+    mode == "adding" // to prevent endless loop when scale return 0
+  ) {
     setTimeout(function() {
       // doesn't work without timeout
       weigh_last_item();

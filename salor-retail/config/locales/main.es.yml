@@ -166,6 +166,7 @@ es:
         quantity: Cantidad
         sku: SKU
         stock_location_id: Ubicación del stock
+      shipper_name: Shipper
       shipper_sku: SKU del transportador
       sku: SKU
       start_amount: Monto inicial
@@ -216,7 +217,6 @@ es:
       when: Cuándo
       whento: When
       width: Ancho
-      shipper_name: Shipper
     models:
       action:
         one: Acción
@@ -373,6 +373,7 @@ es:
     update_location: Actualizar ubicación
     update_real_quantity: Actualizar cantidad real
     users: users
+    action_apply_to_area: Apply this action to
   helpers:
     select:
       prompt: Por favor seleccione
@@ -422,12 +423,16 @@ es:
         20 minutos. ¿Está seguro de continuar?
       report: Report
     inventory_report:
+      add_quantity: add quantity
+      current_quantity: Current quantity
       no_category: No Category
       price: Precio de venta
       subtotal_purchase_price: Subtotal del precio de compra
       subtotal_selling_price: Subtotal del precio de venta
+      sum_purchase_price: Sum Purchase Price
+      sum_selling_price: Sum Selling Price
       title: Informe de inventario
-      total_buying_price: Total del precio de compra
+      total_purchase_price: Total Purchase Price
       total_selling_price: Total del precio de venta
     selection:
       print: Print
@@ -495,6 +500,7 @@ es:
     end_day: Finalizar el día
     enter_inventory_items: Enter
     general_configuration: Configuración general
+    gift_cards: Gift Cards
     home: Inicio
     inventory_report: Resúmen de inventario
     invoice_blurbs: Invoice Blurbs
@@ -732,6 +738,7 @@ es:
     cashier: Cajera
     manager: Gerente
     stockboy: Almacenero
+  sales_statistics: Sale Statistics
   shipments:
     index:
       report: Informe
@@ -751,6 +758,8 @@ es:
         Rogamos cree manualmente un depósito en efectivo de comienzo del día.
       cannot_edit_completed_order: Ese pedido ha finalizado y no puede ser modificado.
       cannot_reorder: No ne necesita volver a encargar ningún artículo.
+      cannot_set_negative_price: Setting negative prices is not allowed. Please switch
+        to buyback mode and enter a positive price.
       child_sku_must_exist: ¡Debe existir un artículo hijo!
       coupon_cannot_be_buy_one_get_one: El cupón %{sku} no puede ser compre_uno_reciba_uno_de
         regalo cuando se lo aplica a %{applies}
@@ -758,6 +767,11 @@ es:
         esto se aplique.
       csv_item_exists: ¡El artículo %{sku} ya existe!
       csv_item_failed: ! '%{id} %{i} ha fracasado.'
+      deletion_of_item_when_order_completed: This order has already been completed
+        at a differnt location. Please click the "New" button to start a new order.
+      dont_use_negative_prices: Prices cannot be negative. Use positive buyback price
+        instead.
+      dont_use_weird_skus: Only Aa-Zz and 0-9 are permitted in the SKU field
       failed_to_save_parts: No se ha podido grabar las partes. Asegúrese de que existan
         artículos con partes.
       gift_card_empty: La tarjeta de regalo no contiene más crédito. Informar al cliente
@@ -808,6 +822,7 @@ es:
       shipment_item_nil: El artículo volvió del envío. ¿Es una artículo vacío?
       sku_must_be_unique: ! '%{sku} debe ser único.'
       value_not_set: NoDeterminado
+    finish_day: End of day
     inventory_updated: Inventario actualizado
     logged_in_as: Conectado como
     login: Nombre de usuario
@@ -863,12 +878,21 @@ es:
       transaction_tag: transaction tag
       transaction_total: transaction total
       transactions: transactions
+    sales_statistics:
+      category: Category
+      from: From
+      item_name: Item name
+      quantity: Quantity
+      sum: Sum
+      title: Sales Statistics
+      to: To
   views:
     advanced_field: Campo avanzado
     cash_register_heading: ! '%{name} para %{store}'
     cash_registers: Cajas
     category_heading: Categoría %{name} para %{store}
     change: Vuelto
+    copies: Copies
     create_new_item: xxx Create New Article
     customers: Clientes
     download_may_last_long: Esta dercarga puede llevar tiempo. ¿Continuar?
@@ -919,6 +943,14 @@ es:
     notice:
       cache_was_cleared: Archvos cache borrados.
       csv_edit_starting: Comienzo de la edición de csv
+      delete_completed_order: This order is already completed. Cannot delete.
+      edit_completed_order: This order is already completed. Cannot edit it.
+      edit_order_by_other_user: This order is currently edited by user %{username}.
+        Cannot open it. User %{username} must click on the 'New' button, then try
+        again.
+      item_not_existing: This item did not exist. It has been created and the price
+        set to zero. You can change the price and it will be saved permanently in
+        the database.
       model_create: ! '%{model} ha sido creado con éxito.'
       model_edit: ! '%{model} ha sido editado con éxito.'
       move_real_quantities_success: Las cantidades de artículos han sido actualizadas
@@ -976,6 +1008,7 @@ es:
       to: A
       top: Arriba
       waiting: Esperando...
+      xor: OR
     sticky_ticket: Etiqueta adhesiva
     stock_locations: Ubicaciones_de_stock
     subtotal: Subtotal
@@ -986,11 +1019,13 @@ es:
     vendor: Tienda
     wholesaler_refresh: Actualización del distribuidor en curso. Esto puede llevar
       algunos minutos.
+    drop_files_here: Drop files here or click to upload.
+    drop_files_only_csv: (Only .csv in the salor format accepted)
   when_list:
     add_to_order: al añadir al pedido
     always: siempre
+    change_quantity: on change quantity
     on_export: al exportar
     on_import: al importar
     on_save: al guardar
     on_sku_not_found: on sku not found
-    change_quantity: on change quantity

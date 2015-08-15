@@ -6,7 +6,6 @@
         <a href="<%= main_app.vendors_path %>">
           <img src="/images/salor-icon.png" />
           <span class="icon-caption"><%= @current_user.username %></span>
-          
         </a>
       </div>
     </li>
@@ -27,6 +26,11 @@
       </div>
     </li>
     <% end %>
+    <li>
+      <div align="center" id="btn-items-index" class="">
+        <%=  link_to raw(salor_icon(:order,{},32,I18n.t("activerecord.models.order.other"))), main_app.orders_path %>
+      </div>
+    </li>
     <% if @current_user and @current_register and @current_user.can(:cashier) %>
       <li>
         <div align="center" id="header_cash_drop" class="no-touchy cash-drop-header" onclick="sr.fn.drawer.showTransactionPopup();">
@@ -54,7 +58,7 @@
     <% end %>
     <li>
       <div align="center" id="end_of_day_button" onclick="window.location = '/cash_registers/end_of_day';" class="no-touchy">
-      <%= salor_icon(:logout,{},32,I18n.t("system.logout")) %><br />
+      <%= salor_icon(:logout,{},32,I18n.t("system.finish_day")) %><br />
       </div>
     </li>
   </ul>

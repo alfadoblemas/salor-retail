@@ -102,7 +102,7 @@ class OrderItem < ActiveRecord::Base
   end
   
   def tax=(value)
-    tp = self.vendor.tax_profiles.visible.find_by_value(value)
+    tp = TaxProfile.find_by_percentage(value, self.vendor)
     if tp.nil?
       msg = "A TaxProfile with value #{ value } has to be created before you can assign this value"
       log_action msg
@@ -112,6 +112,8 @@ class OrderItem < ActiveRecord::Base
       write_attribute :tax, tp.value
     end
   end
+  
+  
   
   def tax_profile_id=(id)
     tp = self.vendor.tax_profiles.visible.find_by_id(id)
@@ -124,81 +126,12 @@ class OrderItem < ActiveRecord::Base
       write_attribute :tax, tp.value
     end
   end
-  
-
-  def refund(pmid, user)
-    return nil if self.refunded
-    
-    drawer = user.get_drawer
-    refund_payment_method = self.vendor.payment_methods.visible.find_by_id(pmid)
-    
-    pmi = PaymentMethodItem.new
-    pmi.vendor = self.vendor
-    pmi.company = self.company
-    pmi.currency = self.vendor.currency
-    pmi.order = self.order
-    pmi.user = user
-    pmi.drawer = drawer
-    pmi.amount = - self.total
-    pmi.payment_method = refund_payment_method
-    pmi.order_item_id = self.id
-    pmi.cash = refund_payment_method.cash
-    pmi.cash_register = self.order.cash_register
-    pmi.refund = true
-    result = pmi.save
-    if result != true
-      raise "Could not save PMI because #{ pmi.errors.messages }"
-    end
-    
-    if refund_payment_method.cash == true
-      dt = DrawerTransaction.new
-      dt.vendor = self.vendor
-      dt.company = self.company
-      dt.currency = self.vendor.currency
-      dt.user = user
-      dt.refund = true
-      dt.tag = 'OrderItemRefund'
-      dt.notes = I18n.t("views.notice.order_refund_dt", :id => self.id)
-      dt.order = self.order
-      dt.order_item_id = self.id
-      dt.drawer = drawer
-      dt.drawer_amount = drawer.amount
-      dt.amount = - self.total
-      dt.save
-      
-      drawer.amount -= self.total
-      drawer.save
-    end
-    
-    self.refunded = true
-    self.refunded_by = user.id
-    self.refunded_at = Time.now
-    self.calculate_totals
-    
-    order = self.order
-    order.calculate_totals
-  end
-  
-  def split
-    order = self.order
-    order.paid = nil
-    order.save
-    noi = self.dup
-    self.quantity -= 1
-    self.calculate_totals
-    noi.quantity = 1
-    noi.calculate_totals
-    order.calculate_totals
-    order.paid = true
-    order.save
-  end
-
 
   def price=(p)
     if p.class == String
       # a string is sent from Vendor.edit_field_on_child
       p = Money.new(self.string_to_float(p, :locale => self.vendor.region) * 100.0, self.currency)
-    elsif p.class == Float
+    elsif p.class == Float or p.class == Fixnum
       # not sure which parts of the code send a Float, but we leave it here for now
       p = Money.new(p * 100.0, self.currency)
     end
@@ -213,6 +146,13 @@ class OrderItem < ActiveRecord::Base
       end
     end
     
+    # don't allow negative inputs
+    if p.fractional < 0 and (not self.is_buyback and self.item.item_type.behavior != "gift_card")
+      $MESSAGES[:prompts] << I18n.t("system.errors.cannot_set_negative_price")
+      p *= -1
+      return
+    end
+    
     # make price negative when it is a buyback OrderItem
     if self.is_buyback
       p = - p.abs
@@ -220,7 +160,7 @@ class OrderItem < ActiveRecord::Base
     
     # update item only when price is 0
     i = self.item
-    if i.weigh_compulsory != true and i.must_change_price != true and i.price.zero?
+    if i.weigh_compulsory != true and i.must_change_price != true and i.default_buyback != true and i.price.zero?
       i.price = p
       i.save!
     end
@@ -229,7 +169,7 @@ class OrderItem < ActiveRecord::Base
   
   # this method is just for documentation purposes: that total always includes tax. it is the physical money that has to be collected from the customer.
   def gross
-    log_action "XXXXXXXXX gross #{ self.total_cents.inspect }"
+    # log_action "gross #{ self.total_cents.inspect }"
     return self.total
   end
   
@@ -257,6 +197,7 @@ class OrderItem < ActiveRecord::Base
     self.gift_card_amount = item.gift_card_amount
     self.weigh_compulsory = item.weigh_compulsory
     self.quantity     = self.weigh_compulsory ? 0 : 1
+    self.no_inc       = self.weigh_compulsory
     self.calculate_part_price = item.calculate_part_price # cache for faster processing
     self.user         = self.order.user
   end
@@ -365,9 +306,10 @@ class OrderItem < ActiveRecord::Base
   
   # This is only for the European tax system. Item.price is already gross and implicitly includes a tax amount for the specific TaxProfile set on Item, However, the user can change the TaxProfile from the POS screen. If that happens, we have to find the implied net part of self.total, and re-calculate self.total according to the set tax.
   def adapt_gross
-    return if self.vendor.net_prices
+    return if self.vendor.net_prices || self.tax == self.item.tax_profile.value
+    
     net_cents = self.total_cents / ( 1.0 + ( self.item.tax_profile.value / 100.0 ) )
-    self.total_cents = net_cents * ( 1.0 + ( self.tax / 100.0 ) )
+    self.total_cents = (net_cents * ( 1.0 + ( self.tax / 100.0 ) )).round(2)
   end
   
   # coupons have to be added on the POS screen AFTER the matching product
@@ -418,7 +360,7 @@ class OrderItem < ActiveRecord::Base
       if self.vendor.net_prices
         coitem.total = coitem.net - coitem.coupon_amount
       else
-        log_action "XXXXXXXXX #{ coitem.gross.inspect } #{ coitem.coupon_amount.inspect  }"
+        # log_action "XXXXXXXXX #{ coitem.gross.inspect } #{ coitem.coupon_amount.inspect  }"
         coitem.total = coitem.gross - coitem.coupon_amount
       end
       log_action "apply_coupon: OrderItem Total after coupon applied is: #{coitem.total_cents} and coupon_amount is #{coitem.coupon_amount_cents}"
@@ -460,9 +402,6 @@ class OrderItem < ActiveRecord::Base
     end
   end
 
-
-  
-  
   def quantity=(q)
     q = self.string_to_float(q, :locale => self.vendor.region)
     if ( self.behavior == 'gift_card' or self.behavior == 'coupon' ) and q != 1
@@ -493,18 +432,10 @@ class OrderItem < ActiveRecord::Base
     end
     self.order.calculate_totals
   end
-  
-  
-  
+
   def to_json
     obj = {}
     if self.item then
-      quantity_string = ""
-      if self.quantity.round == self.quantity
-        quantity_string = self.quantity.to_i.to_s
-      else
-        quantity_string = self.quantity.to_s
-      end
       obj = {
         :name => self.get_translated_name(I18n.locale)[0..20],
         :category_id => self.category_id,
@@ -513,7 +444,7 @@ class OrderItem < ActiveRecord::Base
         :activated => self.item.activated,
         :gift_card_amount => self.item.gift_card_amount.to_f,
         :coupon_type => self.item.coupon_type,
-        :quantity => quantity_string,
+        :quantity => self.quantity, #quantity_string,
         :price => self.price.to_f,
         :discount_amount => self.discount_amount.to_f,
         :rebate_amount => self.rebate_amount.to_f,
@@ -558,7 +489,7 @@ class OrderItem < ActiveRecord::Base
         pass = should == actual
         msg = "total must be (price * quantity) - price reductions + tax_amount"
         type = :orderItemTotalCorrectNet
-        tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should, :a=>actual} if pass == false
+        tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should.fractional, :a=>actual.fractional} if pass == false
         
       else
         should = Money.new((self.quantity * self.price_cents) - price_reductions, self.vendor.currency)
@@ -566,7 +497,7 @@ class OrderItem < ActiveRecord::Base
         pass = should == actual
         msg = "total must be (price * quantity) - price reductions"
         type = :orderItemTotalCorrect
-        tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should, :a=>actual} if pass == false
+        tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should.fractional, :a=>actual.fractional} if pass == false
       end
     end
       
@@ -610,6 +541,15 @@ class OrderItem < ActiveRecord::Base
       tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should, :a=>actual} if pass == false
     end
     
+    if self.is_buyback == nil and self.behavior != "gift_card"
+      should = self.total_cents.abs
+      actual = self.total_cents
+      pass = should == actual
+      msg = "non-buyback items must have a positive price"
+      type = :orderItemNonBuybackPricePositive
+      tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should, :a=>actual} if pass == false
+    end
+    
     # ---
     if self.vendor.net_prices
       price_reductions = coupon_amount_cents.to_i + discount_amount_cents.to_i + rebate_amount_cents.to_i
@@ -620,7 +560,7 @@ class OrderItem < ActiveRecord::Base
       pass = should == actual
       msg = "tax must be correct"
       type = :orderItemTaxCorrectNet
-      tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should, :a=>actual} if pass == false
+      tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should.fractional, :a=>actual.fractional} if pass == false
       
 #       pass = (should.fractional - actual.fractional).abs != 1
 #       msg = "1 cent rounding error"
@@ -633,12 +573,12 @@ class OrderItem < ActiveRecord::Base
       pass = should == actual
       msg = "tax must be correct"
       type = :orderItemTaxCorrect
-      tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should, :a=>actual} if pass == false
+      tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should.fractional, :a=>actual.fractional} if pass == false
       
-#       pass = (should.fractional - actual.fractional).abs != 1
-#       msg = "1 cent rounding error"
-#       type = :orderItemTaxRounding
-#       tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should, :a=>actual} if pass == false
+      pass = (should.fractional - actual.fractional).abs != 1
+      msg = "1 cent rounding error"
+      type = :orderItemTaxRounding
+      tests << {:model=>"OrderItem", :id=>self.id, :t=>type, :m=>msg, :s=>should.fractional, :a=>actual.fractional} if pass == false
     end
     
     # ---
